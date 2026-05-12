@@ -88,8 +88,15 @@ Compute a 0-10 health score:
 3. [Third priority]
 ```
 
+## Visual Report
+After collecting all data, generate a visual HTML dashboard:
+1. Read the template at `~/claude-code-se-starter-kit/templates/reports/system-health.html`
+2. Replace all `{{PLACEHOLDER}}` tokens with actual values
+3. Write the populated HTML to `/tmp/system-health-report.html`
+4. Run `open /tmp/system-health-report.html` to display in browser
+
 ## Rules
 - Run non-destructively — read only, never modify
 - Report facts, not opinions
 - If a layer doesn't exist (no graph, no crons), report "Not configured" not "Broken"
-- Under 300 words total output
+- Under 300 words for terminal output (full detail goes to HTML report)
