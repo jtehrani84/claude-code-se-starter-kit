@@ -1,8 +1,8 @@
 # Claude Code SE Starter Kit
 
-**Go from Day 0 to Day 30 in 30 minutes.**
+**Day 5 with compound loops activated.**
 
-This kit gives you the persistent context architecture that took 60 days of trial-and-error to build. Clone it, run setup, and start compounding immediately.
+This kit gives you the persistent context architecture that took 60 days of trial-and-error to build. Clone it, run setup, and the system starts compounding from session one. Every correction you make becomes permanent. Every mistake develops an immune response.
 
 ## What You Get
 
@@ -10,10 +10,11 @@ This kit gives you the persistent context architecture that took 60 days of tria
 |-------|------|--------|
 | **Identity** | Template CLAUDE.md with routing table | Claude knows your role, projects, and constraints from session 1 |
 | **Rules** | 3 governance files (voice, security, architecture) | Standards enforced automatically — no re-explaining |
-| **Hooks** | Session-init + guardrail script | Context routes itself; your worst mistake gets blocked |
-| **Skills** | 5 SE-specific workflows | /account-prep, /deal-strategy, /email-draft, /post-meeting, /demo-prep |
-| **Wiki** | Starter knowledge base | Architecture decisions, corrections, reference docs — all organized |
-| **Crons** | Intelligence automation template | Overnight Slack + web scanning → morning brief |
+| **Hooks** | 4 scripts (session-init, guardrail, product-verification, output-quality-gate) | Context routes itself; mistakes get blocked or flagged |
+| **Skills** | 11 SE-specific workflows | From meeting prep to content quality to meta-skills |
+| **Wiki** | Starter knowledge base with entity pages | Architecture decisions, people, reference docs — all organized |
+| **Crons** | Intelligence automation pipeline | Overnight Exa + HN scanning -> morning digest |
+| **Examples** | Compound loop walkthrough | See exactly how one mistake becomes a permanent fix |
 
 ## Quick Start (30 minutes)
 
@@ -29,8 +30,9 @@ The setup script will:
 1. Copy templates to your `~/.claude/` directory (won't overwrite existing files)
 2. Ask your role, OU, and top constraint
 3. Generate your personalized CLAUDE.md
-4. Install hooks and rules
+4. Install hooks, rules, and skills
 5. Set up the wiki structure
+6. Optionally configure crons for overnight intelligence
 
 ### Option B: Let Claude build it
 
@@ -49,47 +51,118 @@ Claude will scaffold everything interactively.
 - Rules enforce your voice and security standards
 - Run `/account-prep [company]` before any meeting
 - When Claude makes a mistake, say "remember this" — it saves a memory file
+- Product verification hook catches hallucinated Salesforce names
 
 ### Week 2-3: Growth
 - Memory files accumulate from corrections and decisions
 - Wiki grows as Claude writes reference pages from your work
 - Skills save 30+ minutes of instruction per use
-- Morning brief starts arriving if you enable crons
+- Morning brief arrives if you enable crons
+- Use `/skillify` to extract new workflows from sessions
 
 ### Week 4+: Compound Effects
-- Guardrails prevent entire classes of errors
+- Output quality gate catches the last 1% of slip-throughs
 - Entity graph connects related knowledge automatically
-- Skills call MCP servers for real data
+- `/validate` provides cross-check before shipping content
 - The system builds itself from here
+
+## What Each Skill Does
+
+| Skill | Purpose |
+|-------|---------|
+| `/account-prep` | Pre-meeting intelligence: company snapshot, relationship history, their priorities, your angle |
+| `/deal-strategy` | Competitive positioning, objection handling, talk tracks for active opportunities |
+| `/email-draft` | Customer email with anti-slop enforcement and 70/30 customer-centric structure |
+| `/post-meeting` | Capture outcomes, action items, CRM updates, and schedule next steps |
+| `/demo-prep` | Demo script tailored to the prospect's industry, pain points, and persona |
+| `/system-health` | Infrastructure and configuration health check across your Claude setup |
+| `/skillify` | Meta-skill: extract any repeatable workflow from the current session into a new command |
+| `/validate` | Cross-model quality gate: scores content 1-10 on 5 dimensions, verdicts SHIP/FIX/REWRITE |
+| `/voice-check` | Anti-slop scanner: finds all 50+ banned words/phrases with line numbers and replacements |
+| `/content-review` | 6-dimension reviewer: accuracy, voice, specificity, customer focus, actionability, credibility |
+| `/weekly-report` | Status report from git log, memory files, and session activity |
+| `/morning-brief` | Daily context load: overnight intel, yesterday's work, today's focus, suggested actions |
+
+## Hooks (4 Scripts)
+
+| Hook | Type | What It Does |
+|------|------|-------------|
+| `session-init.py` | SessionStart | Routes context based on working directory and git branch |
+| `guardrail.py` | PreToolUse (Bash) | Blocks dangerous commands: force-push, --set-env-vars, rm -rf, secrets |
+| `product-verification.py` | PreToolUse (Edit/Write) | Flags hallucinated Salesforce product names before they reach output |
+| `output-quality-gate.py` | PostToolUse (Write) | Scans written content for AI-slop words and reports violations |
+
+## The Compound Loop
+
+```
+Mistake --> Correction --> Memory File --> Rule --> Hook --> Prevention
+                                                             |
+                                                  That error class is gone forever
+```
+
+See `examples/compound-loop/` for a complete walkthrough showing one real correction evolving from memory to rule to hook enforcement.
 
 ## Directory Structure
 
 ```
 ~/.claude/
-├── CLAUDE.md                    # Your identity + routing table (from template)
-├── rules/                       # Always-loaded governance
-│   ├── communication.md         # Voice standards, anti-slop
-│   ├── security-governance.md   # CRUD/FLS, sharing, secrets
-│   └── architecture.md          # Decision framework, patterns
-├── hooks/
-│   └── scripts/
-│       ├── session-init.py      # Context routing on start
-│       └── guardrail.py         # PreToolUse enforcement
-├── commands/                    # Custom /commands (skills)
-│   ├── account-prep.md
-│   ├── deal-strategy.md
-│   ├── email-draft.md
-│   ├── post-meeting.md
-│   └── demo-prep.md
-├── projects/
-│   └── [your-project]/
-│       └── memory/              # Auto-populated by Claude
-│           ├── MEMORY.md        # Index (auto-loaded)
-│           └── *.md             # Topic files
-└── crons/                       # Optional: overnight intelligence
-    └── gather/
-        └── channel-roster.md    # Slack channels to monitor
+|-- CLAUDE.md                        # Your identity + routing table (from template)
+|-- settings.json                    # Hook config, permissions, env vars (from settings.json.example)
+|-- rules/                           # Always-loaded governance
+|   |-- communication.md             # Voice standards, anti-slop, banned words
+|   |-- security-governance.md       # CRUD/FLS, sharing, secrets
+|   +-- architecture.md              # Decision framework, patterns
+|-- hooks/
+|   +-- scripts/
+|       |-- session-init.py          # Context routing on start
+|       |-- guardrail.py             # PreToolUse: block dangerous commands
+|       |-- product-verification.py  # PreToolUse: catch hallucinated product names
+|       +-- output-quality-gate.py   # PostToolUse: scan for AI-slop in written files
+|-- commands/                        # Custom /commands (skills)
+|   |-- account-prep.md
+|   |-- deal-strategy.md
+|   |-- email-draft.md
+|   |-- post-meeting.md
+|   |-- demo-prep.md
+|   |-- system-health.md
+|   |-- skillify.md
+|   |-- validate.md
+|   |-- voice-check.md
+|   |-- content-review.md
+|   |-- weekly-report.md
+|   +-- morning-brief.md
+|-- projects/
+|   +-- [your-project]/
+|       +-- memory/                  # Auto-populated by Claude
+|           |-- MEMORY.md            # Index (auto-loaded)
+|           +-- *.md                 # Topic files
++-- wiki/
+    |-- index.md                     # Wiki entry point
+    +-- people/                      # Entity pages
+        |-- _template-internal.md    # Colleague template
+        |-- _template-external.md    # Customer/partner template
+        +-- [name].md                # Individual profiles
+
+crons/                               # Optional: overnight intelligence
+|-- manage.sh                        # Install/uninstall/status/test
+|-- gather/
+|   |-- exa-scan.py                  # Web intelligence via Exa API
+|   |-- hn-scan.py                   # Developer sentiment via HN Algolia
+|   +-- channel-roster.md            # Slack channels to monitor
+|-- synthesize/
+|   +-- morning-digest.sh           # Claude synthesizes raw -> wiki/inbox.md
+|-- plists/
+|   +-- com.claude.gather.exa.plist  # macOS launchd schedule (4:30 AM)
++-- raw/                             # Raw gather output (date-stamped)
 ```
+
+## Configuration
+
+Copy `settings.json.example` to `~/.claude/settings.json` and customize:
+- Hook paths and matcher patterns
+- Permission allowlists (reduce permission prompts)
+- Environment variables
+- Model selection
 
 ## Customization
 
@@ -106,15 +179,21 @@ The Slack channel roster in `crons/gather/channel-roster.md` has placeholder cha
 ### For your domain
 Skills are templates. Edit them to match YOUR workflows, YOUR CRM fields, YOUR customer segments.
 
-## How It Works (The Compound Loop)
+### Entity pages
+Start with 3-5 key people (your manager, your top customer, your cross-functional partner). The wiki grows from there. See `wiki/people/README.md`.
 
-```
-Mistake → Correction → Memory File → Rule → Hook → Prevention
-                                                        ↓
-                                            That error class is gone forever
-```
+## How It Works
 
-Every correction you make gets saved. Repeated mistakes become rules. Ignored rules become enforcement hooks. The system develops immunity to its own failure modes.
+Every correction you make gets saved as a memory file. Repeated corrections become rules (auto-loaded every session). Critical rules become hooks (mechanically enforced). The system develops immunity to its own failure modes.
+
+After 30 days, a typical setup has:
+- 40-60 memory files (corrections, decisions, preferences)
+- 8-12 rules (governance, voice, domain constraints)
+- 4-6 hooks (hard enforcement of critical patterns)
+- 10-15 skills (workflow automation)
+- 20-30 entity pages (people knowledge)
+
+That's ~100 persistent context items working silently in every session.
 
 ## FAQ
 
@@ -125,10 +204,13 @@ No. Tell Claude what you want enforced, what workflow to automate, what mistake 
 No. The setup script checks for existing files and skips them. You can also run it in dry-run mode first.
 
 **How much does this cost?**
-Nothing beyond your existing Claude Code subscription. No external services required. Crons are optional and use the same Claude session.
+Nothing beyond your existing Claude Code subscription. No external services required. Crons are optional (Exa API has a free tier; HN Algolia is free).
 
 **Can I share my setup with my team?**
-Yes — that's how this kit was created. Once your system matures, you can export your rules and skills for others.
+Yes — that's how this kit was created. Once your system matures, you can export your rules and skills for others. Use `/skillify` to package workflows.
+
+**What's the difference between a rule and a hook?**
+Rules are instructions Claude reads at session start. They're soft — they can be forgotten in very long conversations. Hooks are code that runs mechanically before or after tool calls. They can't be forgotten because they execute outside the model's context.
 
 ## Origin
 
