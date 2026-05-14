@@ -212,6 +212,26 @@ Yes — that's how this kit was created. Once your system matures, you can expor
 **What's the difference between a rule and a hook?**
 Rules are instructions Claude reads at session start. They're soft — they can be forgotten in very long conversations. Hooks are code that runs mechanically before or after tool calls. They can't be forgotten because they execute outside the model's context.
 
+## Recommended Plugins
+
+These extend the base kit significantly. Install from Claude Code marketplace:
+
+| Plugin | What It Does | Install |
+|--------|-------------|---------|
+| **context-mode** | 98% context compression, FTS5 search — extends long sessions massively | `/context-mode:ctx-upgrade` |
+| **hookify** | Generate hooks from conversation patterns — "never do X again" becomes code | Marketplace → hookify |
+| **session-report** | End-of-session summary with token usage and work done | Marketplace → session-report |
+
+## Recommended MCP Servers
+
+Add these to `~/.claude/settings.json` under `mcpServers`:
+
+| Server | What It Does | Setup |
+|--------|-------------|-------|
+| **GitHub** | PR creation, code search, issue management | `gh auth login` then add to settings |
+| **Exa** | Real-time web intelligence (powers /scan-intel crons) | Get API key at exa.ai |
+| **Context7** | Current documentation lookup for any framework | Free, no auth needed |
+
 ## Origin
 
 This architecture was built over 60 days by John Tehrani (Principal Solutions Engineer, TMT) starting from a blank Claude Code install. The full story: [From Memory to Operating System](https://jtehrani84.github.io/claude-context-architecture/from-memory-to-operating-system.html)
