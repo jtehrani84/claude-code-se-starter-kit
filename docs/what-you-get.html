@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code SE Starter Kit — Complete Inventory</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, sans-serif; font-size: 9.5pt; line-height: 1.5; color: #1a1a1a; background: white; padding: 0.5in 0.6in; }
+        h1 { font-size: 18pt; font-weight: 700; margin-bottom: 4pt; color: #0f172a; }
+        h2 { font-size: 12pt; font-weight: 700; margin-top: 16pt; margin-bottom: 6pt; color: #0f172a; border-bottom: 1.5px solid #e2e8f0; padding-bottom: 3pt; }
+        h3 { font-size: 10pt; font-weight: 600; margin-top: 10pt; margin-bottom: 4pt; color: #334155; }
+        p { margin-bottom: 6pt; }
+        .subtitle { font-size: 10pt; color: #64748b; margin-bottom: 12pt; }
+        .meta { font-size: 8pt; color: #94a3b8; margin-bottom: 16pt; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 10pt; font-size: 8.5pt; }
+        th { background: #f8fafc; font-weight: 600; text-align: left; padding: 5pt 6pt; border: 0.5pt solid #e2e8f0; }
+        td { padding: 4pt 6pt; border: 0.5pt solid #e2e8f0; vertical-align: top; }
+        tr:nth-child(even) { background: #fafbfc; }
+        .highlight { background: #f0f9ff; border-left: 3px solid #0ea5e9; padding: 8pt 10pt; margin: 8pt 0; }
+        .highlight p { margin-bottom: 0; }
+        .count-badge { display: inline-block; background: #0f172a; color: white; font-size: 7.5pt; font-weight: 600; padding: 1pt 6pt; border-radius: 8pt; margin-left: 4pt; }
+        .section-intro { color: #475569; margin-bottom: 8pt; }
+        code { font-family: 'SF Mono', Menlo, monospace; font-size: 8pt; background: #f1f5f9; padding: 1pt 3pt; border-radius: 2pt; }
+        .compound-flow { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4pt; padding: 10pt; margin: 10pt 0; font-family: 'SF Mono', Menlo, monospace; font-size: 8pt; line-height: 1.7; }
+        .page-break { page-break-before: always; }
+        @media print {
+            body { padding: 0.4in 0.5in; }
+            h2 { page-break-after: avoid; }
+            table { page-break-inside: avoid; }
+            .no-print { display: none; }
+        }
+        .summary-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8pt; margin: 10pt 0; }
+        .summary-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4pt; padding: 8pt; text-align: center; }
+        .summary-card .number { font-size: 20pt; font-weight: 700; color: #0f172a; }
+        .summary-card .label { font-size: 7.5pt; color: #64748b; text-transform: uppercase; letter-spacing: 0.5pt; }
+    </style>
+</head>
+<body>
+    <h1>Claude Code SE Starter Kit</h1>
+    <p class="subtitle">Complete Inventory — What's Included, What It Does, and Why</p>
+    <p class="meta">github.com/jtehrani84/claude-code-se-starter-kit | Version: May 2026 | Author: John Tehrani, Principal Strategic SE</p>
+
+    <div class="summary-grid">
+        <div class="summary-card"><div class="number">8</div><div class="label">Rules</div></div>
+        <div class="summary-card"><div class="number">6</div><div class="label">Hooks</div></div>
+        <div class="summary-card"><div class="number">22</div><div class="label">Skills</div></div>
+        <div class="summary-card"><div class="number">6</div><div class="label">Crons</div></div>
+        <div class="summary-card"><div class="number">1</div><div class="label">Knowledge Graph</div></div>
+        <div class="summary-card"><div class="number">55+</div><div class="label">Total Files</div></div>
+    </div>
+
+    <div class="highlight">
+        <p><strong>The thesis:</strong> A fresh Claude Code install is a genius with amnesia. This kit gives it institutional memory, quality enforcement, and compound learning from Day 1. Every session makes the next one better. Every correction persists forever. The system builds itself from your work.</p>
+    </div>
+
+    <!-- RULES -->
+    <h2>Rules <span class="count-badge">8</span></h2>
+    <p class="section-intro">Loaded automatically every session. Claude reads these as standards — no re-explaining needed. Ever.</p>
+    <table>
+        <thead><tr><th>Rule</th><th>What It Enforces</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>communication.md</code></td><td>SE voice: 50+ banned AI-slop words, email under 200 words, customer-centric framing, Slack conventions</td><td>Every output sounds like you wrote it</td></tr>
+            <tr><td><code>security-governance.md</code></td><td>CRUD/FLS checks, sharing model, secrets handling, security review checklist on all code</td><td>Never generates insecure code</td></tr>
+            <tr><td><code>architecture.md</code></td><td>Decision framework, preferred patterns, anti-patterns, change design documentation template</td><td>Consistent architecture decisions</td></tr>
+            <tr><td><code>agent-script.md</code></td><td>Agentforce/Agent Script conventions, deterministic routing patterns</td><td>Correct agent authoring</td></tr>
+            <tr><td><code>salesforce-instructions.md</code></td><td>Senior SF SE persona, platform-first, inspect before proposing, small reversible changes</td><td>Claude acts like an experienced SE</td></tr>
+            <tr><td><code>salesforce-platform.md</code></td><td>Bulk-safe Apex, thin triggers, one per object, LWC patterns, named credentials</td><td>Production-quality SF code</td></tr>
+            <tr><td><code>testing-quality.md</code></td><td>Realistic test data, meaningful assertions, quality gate mindset, no seeAllData</td><td>Tests that catch real bugs</td></tr>
+            <tr><td><code>slds2-lwc-ui.md</code></td><td>SLDS 2 styling hooks, token migration, no hardcoded values, no class overrides</td><td>Modern, compliant LWC</td></tr>
+        </tbody>
+    </table>
+
+    <!-- HOOKS -->
+    <h2>Hooks <span class="count-badge">6</span></h2>
+    <p class="section-intro">Code that runs mechanically before/after Claude acts. Unlike rules (which can be forgotten in long sessions), hooks execute as scripts. They intercept mistakes at the moment of action.</p>
+    <table>
+        <thead><tr><th>Hook</th><th>When</th><th>What It Does</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>session-init.py</code></td><td>Session start</td><td>Routes relevant wiki pages, surfaces recent work, shows nudges for overdue actions</td><td>Every session starts with context</td></tr>
+            <tr><td><code>guardrail.py</code></td><td>Before Edit/Write</td><td>Blocks unsafe architecture patterns before code is written</td><td>Prevents infra violations at point of action</td></tr>
+            <tr><td><code>product-verification.py</code></td><td>Before Edit/Write</td><td>Catches hallucinated SF product names (Einstein Copilot, Agentforce Script, etc.) with corrections</td><td>No wrong product names in customer content</td></tr>
+            <tr><td><code>output-quality-gate.py</code></td><td>After Write</td><td>Scans .md/.html for 50+ banned words, reports exact line numbers</td><td>Content quality enforced mechanically</td></tr>
+            <tr><td><code>graph-auto-index.py</code></td><td>After Write/Edit</td><td>Indexes entities into SQLite knowledge graph, computes REFERENCES and RELATES_TO edges</td><td>Knowledge graph grows from your work</td></tr>
+            <tr><td><code>soql-schema-check.py</code></td><td>Before SOQL</td><td>Validates field names against org schema before query execution</td><td>Catches bad SOQL before deploy</td></tr>
+        </tbody>
+    </table>
+
+    <!-- SKILLS -->
+    <h2 class="page-break">Skills <span class="count-badge">22</span></h2>
+    <p class="section-intro">Each skill replaces 15-60 minutes of manual work. Say the command, get the output.</p>
+
+    <h3>Core SE Workflows (7)</h3>
+    <table>
+        <thead><tr><th>Command</th><th>What It Does</th><th>Time Saved</th></tr></thead>
+        <tbody>
+            <tr><td><code>/account-prep</code></td><td>Full pre-meeting intelligence: company + CRM + competitive + suggested agenda</td><td>30 min → 2 min</td></tr>
+            <tr><td><code>/deal-strategy</code></td><td>Competitive positioning + talk track + objection handling for a specific deal</td><td>45 min → 3 min</td></tr>
+            <tr><td><code>/email-draft</code></td><td>Customer email: anti-slop, under 200 words, seniority-matched tone</td><td>15 min → 30 sec</td></tr>
+            <tr><td><code>/post-meeting</code></td><td>Capture outcomes, action items, CRM update draft, follow-up email</td><td>20 min → 2 min</td></tr>
+            <tr><td><code>/demo-prep</code></td><td>Demo script from account context, persona-driven delivery coaching</td><td>30 min → 3 min</td></tr>
+            <tr><td><code>/engagement-playbook</code></td><td>Per-persona strategic playbook with stakeholder map and objection matrix</td><td>60 min → 5 min</td></tr>
+            <tr><td><code>/solution-design</code></td><td>Solution architecture for customer deals with branded deliverables</td><td>2 hrs → 15 min</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Quality Assurance (3)</h3>
+    <table>
+        <thead><tr><th>Command</th><th>What It Does</th><th>Time Saved</th></tr></thead>
+        <tbody>
+            <tr><td><code>/validate</code></td><td>Cross-model quality gate: 5 dimensions, SHIP / FIX FIRST / REWRITE verdict</td><td>Manual review → automated</td></tr>
+            <tr><td><code>/voice-check</code></td><td>Anti-slop scanner: full 50+ word banned list, replacements, pass/fail</td><td>Catches what you'd miss</td></tr>
+            <tr><td><code>/content-review</code></td><td>6-dimension reviewer: accuracy, voice, specificity, customer-centricity, actionability, credibility</td><td>Peer review → instant</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Intelligence & Growth (5)</h3>
+    <table>
+        <thead><tr><th>Command</th><th>What It Does</th><th>Time Saved</th></tr></thead>
+        <tbody>
+            <tr><td><code>/morning-brief</code></td><td>Daily context: overnight intel, git status, memory changes, suggested actions</td><td>15 min → instant</td></tr>
+            <tr><td><code>/scan-intel</code></td><td>Intelligence sweep: web + social → categorized ADOPT / EVALUATE / WATCH</td><td>30 min → 3 min</td></tr>
+            <tr><td><code>/ingest</code></td><td>Process any source (PDF, URL, doc) into wiki pages with entity extraction</td><td>Manual notes → structured</td></tr>
+            <tr><td><code>/week-plan</code></td><td>Weekly planning: deals + intel + projects + priorities + blockers</td><td>30 min → 5 min</td></tr>
+            <tr><td><code>/weekly-report</code></td><td>Status from git + memory + wiki → shipped / in-progress / blocked</td><td>Manual tracking → auto</td></tr>
+        </tbody>
+    </table>
+
+    <h3>System Maintenance (4)</h3>
+    <table>
+        <thead><tr><th>Command</th><th>What It Does</th><th>Time Saved</th></tr></thead>
+        <tbody>
+            <tr><td><code>/curate</code></td><td>Memory maintenance: staleness scan, promotion, inbox processing, orphan detection</td><td>Knowledge stays healthy</td></tr>
+            <tr><td><code>/wiki-lint</code></td><td>Wiki health check: orphans, dead links, stale pages, broken structure</td><td>Wiki stays trustworthy</td></tr>
+            <tr><td><code>/system-health</code></td><td>Diagnostics: hooks firing, rules loading, graph growing</td><td>Debug your setup</td></tr>
+            <tr><td><code>/graph-query</code></td><td>Query knowledge graph: relationships, connections, related files, hub entities</td><td>"What relates to X?" → instant</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Compound Loop (3)</h3>
+    <table>
+        <thead><tr><th>Command</th><th>What It Does</th><th>Time Saved</th></tr></thead>
+        <tbody>
+            <tr><td><code>/skillify</code></td><td>Meta-skill: do work → extract pattern → new permanent command. Skills build skills.</td><td>Manual skill authoring → auto</td></tr>
+            <tr><td><code>/context-load</code></td><td>Cross-project context restore: load state from another project into current session</td><td>Context switching → instant</td></tr>
+            <tr><td><code>/pr-review</code></td><td>PR review against SF architecture and security standards</td><td>Manual checklist → automated</td></tr>
+        </tbody>
+    </table>
+
+    <!-- KNOWLEDGE GRAPH -->
+    <h2>Knowledge Graph</h2>
+    <p class="section-intro">A local SQLite graph that grows automatically from your work. No external infrastructure — just Python + SQLite, works offline.</p>
+    <table>
+        <thead><tr><th>Component</th><th>What It Does</th><th>How It Helps</th></tr></thead>
+        <tbody>
+            <tr><td><code>graph-auto-index.py</code> hook</td><td>Every Write/Edit indexes entities, computes relationship edges</td><td>Graph builds itself — zero maintenance</td></tr>
+            <tr><td><code>/graph-query</code> skill</td><td>Query relationships, find connections, discover related files</td><td>Surface context you didn't know existed</td></tr>
+            <tr><td><code>wiki/entities/</code></td><td>Company, product, concept pages indexed by the graph</td><td>Structured knowledge for traversal</td></tr>
+            <tr><td><code>wiki/people/</code></td><td>Person pages with org trees and interaction timelines</td><td>Relationship intelligence that compounds</td></tr>
+        </tbody>
+    </table>
+    <div class="highlight">
+        <p><strong>How it compounds:</strong> Write about a deal. The hook indexes the account, people, and products mentioned. Next time you prep for that account, the graph surfaces related wiki pages, other deals with the same people, and memory files you'd forgotten. The more you write, the smarter retrieval gets.</p>
+    </div>
+
+    <!-- PASSIVE INTELLIGENCE -->
+    <h2 class="page-break">Passive Intelligence (Crons) <span class="count-badge">6</span></h2>
+    <p class="section-intro">Your knowledge base grows while you sleep. These run on schedule without manual effort.</p>
+    <table>
+        <thead><tr><th>Script</th><th>Schedule</th><th>What It Does</th></tr></thead>
+        <tbody>
+            <tr><td><code>exa-scan.py</code></td><td>Daily 4:30 AM</td><td>5-query web intelligence: accounts, competitors, SF product, trends, Claude ecosystem</td></tr>
+            <tr><td><code>hn-scan.py</code></td><td>Daily 4:45 AM</td><td>4-query Hacker News developer sentiment (free, no auth needed)</td></tr>
+            <tr><td><code>github-scan.py</code></td><td>Daily 4:45 AM</td><td>Trending AI repos + release monitoring on competitor frameworks</td></tr>
+            <tr><td><code>morning-digest.sh</code></td><td>Daily 5:30 AM</td><td>Synthesizes all raw intel into wiki/inbox.md via Claude</td></tr>
+            <tr><td><code>memory-decay-check.sh</code></td><td>Weekly (Sun)</td><td>Flags memory files unchanged >45 days — catches stale knowledge</td></tr>
+            <tr><td><code>manage.sh</code></td><td>Manual</td><td>Install / uninstall / status / test all crons with one command</td></tr>
+        </tbody>
+    </table>
+
+    <!-- WIKI -->
+    <h2>Wiki Structure <span class="count-badge">7 directories</span></h2>
+    <p class="section-intro">Pre-built directory structure. Ready to fill from Day 1.</p>
+    <table>
+        <thead><tr><th>Directory</th><th>What Goes Here</th><th>How It Grows</th></tr></thead>
+        <tbody>
+            <tr><td><code>wiki/concepts/</code></td><td>Patterns, frameworks, competitive analysis</td><td>/ingest, /scan-intel, manual</td></tr>
+            <tr><td><code>wiki/entities/</code></td><td>Companies, products, concepts (graph-indexed)</td><td>/account-prep, /engagement-playbook</td></tr>
+            <tr><td><code>wiki/people/</code></td><td>Person pages — internal and external contacts</td><td>Slack profiles, /post-meeting</td></tr>
+            <tr><td><code>wiki/projects/</code></td><td>Project overviews and status</td><td>Manual — one page per project</td></tr>
+            <tr><td><code>wiki/tools/</code></td><td>Tool docs and setup guides</td><td>/ingest when learning new tools</td></tr>
+            <tr><td><code>wiki/events/</code></td><td>Conference notes, event summaries</td><td>/ingest after events</td></tr>
+            <tr><td><code>wiki/insights/</code></td><td>Research findings, analytical work</td><td>/scan-intel ADOPT items</td></tr>
+        </tbody>
+    </table>
+
+    <!-- COMPOUND EFFECT -->
+    <h2>The Compound Effect</h2>
+    <p class="section-intro">No single component is transformative alone. The value is in how they interact:</p>
+    <div class="compound-flow">
+Day 1:&nbsp;&nbsp;You correct Claude → Memory file saved<br>
+Day 3:&nbsp;&nbsp;Same mistake class → Rule prevents it automatically<br>
+Day 7:&nbsp;&nbsp;Rule forgotten in long session → Hook enforces mechanically<br>
+Day 14: Hook catches a pattern → /skillify extracts it into a new command<br>
+Day 30: Overnight crons feed intel → Morning brief surfaces it<br>
+Day 60: Graph connects entities → Related context surfaces automatically
+    </div>
+    <div class="highlight">
+        <p><strong>Starting matters more than perfecting.</strong> A mediocre setup that runs for 60 days beats a perfect setup that runs for 1 day. Compound growth is the product. The kit gives you Day 5 — compound loops take over from there.</p>
+    </div>
+
+    <!-- SETUP -->
+    <h2>Setup (30 minutes)</h2>
+    <table>
+        <thead><tr><th>Step</th><th>What Happens</th><th>Time</th></tr></thead>
+        <tbody>
+            <tr><td>1. Clone</td><td><code>git clone github.com/jtehrani84/claude-code-se-starter-kit</code></td><td>1 min</td></tr>
+            <tr><td>2. Run setup</td><td><code>./setup.sh</code> — copies templates, asks your role/OU, generates CLAUDE.md</td><td>5 min</td></tr>
+            <tr><td>3. Personalize</td><td>Edit CLAUDE.md with your projects, constraints, routing table</td><td>10 min</td></tr>
+            <tr><td>4. Test</td><td>Open Claude Code, run <code>/account-prep [your account]</code></td><td>2 min</td></tr>
+            <tr><td>5. Activate crons</td><td><code>crons/manage.sh install</code> (optional — enables overnight intel)</td><td>2 min</td></tr>
+        </tbody>
+    </table>
+
+    <p style="margin-top: 16pt; text-align: center; color: #94a3b8; font-size: 8pt;">
+        Claude Code SE Starter Kit — github.com/jtehrani84/claude-code-se-starter-kit<br>
+        John Tehrani | Principal, Strategic SE | jtehrani@salesforce.com
+    </p>
+</body>
+</html>
