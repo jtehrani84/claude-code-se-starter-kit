@@ -73,44 +73,47 @@
   },
 
   // Hooks — scripts that fire at specific lifecycle events
+  // Format: "matcher" is a string (tool name, pipe-separated list, or empty for all)
+  //         "hooks" is an array of command objects
   "hooks": {
     // Fires once at the start of every session
     "SessionStart": [
       {
-        "type": "command",
-        "command": "python3 ~/.claude/hooks/scripts/session-init.py"
+        "hooks": [
+          { "type": "command", "command": "python3 ~/.claude/hooks/scripts/session-init.py" }
+        ]
       }
     ],
 
     // Fires before Claude executes any tool
     "PreToolUse": [
       {
-        // Block dangerous bash commands
-        "type": "command",
-        "command": "python3 ~/.claude/hooks/scripts/guardrail.py",
-        "matcher": {
-          "tool_name": "Bash"
-        }
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "python3 ~/.claude/hooks/scripts/guardrail.py" }
+        ]
       },
       {
-        // Check for hallucinated product names on file writes
-        "type": "command",
-        "command": "python3 ~/.claude/hooks/scripts/product-verification.py",
-        "matcher": {
-          "tool_name": ["Edit", "Write"]
-        }
+        "matcher": "Edit|Write",
+        "hooks": [
+          { "type": "command", "command": "python3 ~/.claude/hooks/scripts/product-verification.py" }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "python3 ~/.claude/hooks/scripts/soql-schema-check.py" }
+        ]
       }
     ],
 
     // Fires after Claude completes a tool execution
     "PostToolUse": [
       {
-        // Scan written content for AI-sounding language
-        "type": "command",
-        "command": "python3 ~/.claude/hooks/scripts/output-quality-gate.py",
-        "matcher": {
-          "tool_name": "Write"
-        }
+        "matcher": "Write",
+        "hooks": [
+          { "type": "command", "command": "python3 ~/.claude/hooks/scripts/output-quality-gate.py" }
+        ]
       }
     ],
 

@@ -265,72 +265,42 @@ if [[ -f "$SETTINGS_FILE" ]]; then
     else
         if [[ "$DRY_RUN" == false ]]; then
             # Use python3 to safely merge hooks into existing settings.json
+            # Format: {"hooks": {"EventName": [{"matcher": "ToolName", "hooks": [{"type": "command", "command": "..."}]}]}}
             python3 -c "
 import json, sys
 
 settings_path = '$SETTINGS_FILE'
 try:
     with open(settings_path) as f:
-        # Handle JSON with comments (strip // lines)
         lines = f.readlines()
         clean = ''.join(l for l in lines if not l.strip().startswith('//'))
         settings = json.loads(clean)
 except Exception:
-    # If we can't parse, don't touch it
     print('  Could not parse settings.json — skipping hook wiring.', file=sys.stderr)
     print('  Wire hooks manually using the REFERENCE file.', file=sys.stderr)
     sys.exit(0)
 
-# Only add hooks if not already present
 if 'hooks' not in settings:
     settings['hooks'] = {}
 
 hooks = settings['hooks']
 
-# SessionStart
-if 'SessionStart' not in hooks:
-    hooks['SessionStart'] = []
-if not any('session-init.py' in str(h) for h in hooks['SessionStart']):
-    hooks['SessionStart'].append({
-        'type': 'command',
-        'command': 'python3 ~/.claude/hooks/scripts/session-init.py'
-    })
+def add_hook(event, matcher, command):
+    if event not in hooks:
+        hooks[event] = []
+    script_name = command.split('/')[-1]
+    if any(script_name in json.dumps(h) for h in hooks[event]):
+        return
+    entry = {'hooks': [{'type': 'command', 'command': command}]}
+    if matcher:
+        entry['matcher'] = matcher
+    hooks[event].append(entry)
 
-# PreToolUse - guardrail
-if 'PreToolUse' not in hooks:
-    hooks['PreToolUse'] = []
-if not any('guardrail.py' in str(h) for h in hooks['PreToolUse']):
-    hooks['PreToolUse'].append({
-        'type': 'command',
-        'command': 'python3 ~/.claude/hooks/scripts/guardrail.py',
-        'matcher': {'tool_name': 'Bash'}
-    })
-
-# PreToolUse - product verification
-if not any('product-verification.py' in str(h) for h in hooks['PreToolUse']):
-    hooks['PreToolUse'].append({
-        'type': 'command',
-        'command': 'python3 ~/.claude/hooks/scripts/product-verification.py',
-        'matcher': {'tool_name': ['Edit', 'Write']}
-    })
-
-# PreToolUse - SOQL schema check
-if not any('soql-schema-check.py' in str(h) for h in hooks['PreToolUse']):
-    hooks['PreToolUse'].append({
-        'type': 'command',
-        'command': 'python3 ~/.claude/hooks/scripts/soql-schema-check.py',
-        'matcher': {'tool_name': 'Bash'}
-    })
-
-# PostToolUse - output quality gate
-if 'PostToolUse' not in hooks:
-    hooks['PostToolUse'] = []
-if not any('output-quality-gate.py' in str(h) for h in hooks['PostToolUse']):
-    hooks['PostToolUse'].append({
-        'type': 'command',
-        'command': 'python3 ~/.claude/hooks/scripts/output-quality-gate.py',
-        'matcher': {'tool_name': 'Write'}
-    })
+add_hook('SessionStart', '', 'python3 ~/.claude/hooks/scripts/session-init.py')
+add_hook('PreToolUse', 'Bash', 'python3 ~/.claude/hooks/scripts/guardrail.py')
+add_hook('PreToolUse', 'Edit|Write', 'python3 ~/.claude/hooks/scripts/product-verification.py')
+add_hook('PreToolUse', 'Bash', 'python3 ~/.claude/hooks/scripts/soql-schema-check.py')
+add_hook('PostToolUse', 'Write', 'python3 ~/.claude/hooks/scripts/output-quality-gate.py')
 
 with open(settings_path, 'w') as f:
     json.dump(settings, f, indent=2)
