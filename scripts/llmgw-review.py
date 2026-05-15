@@ -12,9 +12,10 @@ import urllib.request
 import urllib.error
 from pathlib import Path
 
-# Salesforce LLMGW endpoint — same for all SEs with LLMGW installer + ZScaler
-# Auth token auto-reads from ~/.claude/settings.json (set by LLMGW installer)
-GATEWAY_BASE = "https://eng-ai-model-gateway.sfproxy.devx-preprod.aws-esvc1-useast2.aws.sfdc.cl"
+# Reads gateway URL from env vars set by Claude Code + LLMGW installer.
+# ANTHROPIC_BEDROCK_BASE_URL includes /bedrock suffix — strip it for direct calls.
+# Fallback: LLMGW_BASE_URL if set explicitly.
+GATEWAY_BASE = os.environ.get("ANTHROPIC_BEDROCK_BASE_URL", "").replace("/bedrock", "") or os.environ.get("LLMGW_BASE_URL", "")
 MODELS = {
     "gpt-5.5": "gpt-5.5",
     "gpt-5": "gpt-5",

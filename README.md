@@ -16,6 +16,32 @@ This kit gives you the persistent context architecture that took 60 days of tria
 | **Crons** | Intelligence automation pipeline | Overnight Exa + HN scanning -> morning digest |
 | **Examples** | Compound loop walkthrough | See exactly how one mistake becomes a permanent fix |
 
+## Prerequisites (Do These FIRST)
+
+**You MUST have Claude Code installed and working via LLMGW before installing this kit.**
+
+1. **If you were on Embark/Vertex AI** — run the cleanup script first:
+   ```bash
+   curl -fsSL https://sf-claude-cleanup-8969fb1c0934.herokuapp.com/install.sh | bash
+   ```
+   Quit and reopen Terminal after cleanup.
+
+2. **Install Claude Code via LLMGW** (if not already done):
+   ```bash
+   curl -fsSL https://plugins.codegen.salesforceresearch.ai/claude/install.sh | bash
+   ```
+   Complete the Google SSO login. Quit and reopen Terminal.
+
+3. **Verify Claude Code works:**
+   ```bash
+   mkdir -p ~/claude-projects && cd ~/claude-projects && claude
+   ```
+   You should see the Claude Code welcome banner. Type "hello" and confirm you get a response. Exit with `/exit`.
+
+4. **THEN install this starter kit** (below).
+
+> **Why this order matters:** The LLMGW installer writes your auth key to `~/.claude/settings.json`. This kit adds hooks and rules to that same directory. If you install the kit first, everything still works — but if you accidentally overwrite `settings.json` with the reference file from this kit, your auth key is erased and Claude Code shows "not logged in." If that happens, re-run the LLMGW installer (step 2) to restore your auth.
+
 ## Quick Start (30 minutes)
 
 ### Option A: One-command setup

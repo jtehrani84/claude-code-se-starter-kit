@@ -169,33 +169,30 @@ def validate_fields(fields: List[str], describe_result: Dict) -> List[Dict]:
 
 
 def format_allow():
-    """Return ALLOW response."""
-    return {"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "allow"}}
+    """Return ALLOW response (simple format for cross-version compatibility)."""
+    return {"result": "continue"}
 
 
 def format_block(reason: str, context: str = ""):
-    """Return BLOCK response with reason."""
-    output = {
-        "hookSpecificOutput": {
-            "hookEventName": "PreToolUse",
-            "permissionDecision": "deny",
-            "permissionDecisionReason": reason,
-        }
-    }
+    """Return BLOCK response with reason (simple format for cross-version compatibility)."""
+    message = reason
     if context:
-        output["hookSpecificOutput"]["additionalContext"] = context
-    return output
+        message = f"{reason} | {context}"
+    return {"result": "block", "reason": message}
 
 
 def format_allow_with_context(context: str):
-    """Return ALLOW with additional context (org field info)."""
-    return {
-        "hookSpecificOutput": {
-            "hookEventName": "PreToolUse",
-            "permissionDecision": "allow",
-            "additionalContext": context,
-        }
-    }
+    """Return ALLOW with warning context (simple format for cross-version compatibility)."""
+    return {"result": "continue", "warning": context}
+
+
+def sf_cli_available():
+    """Check if sf CLI is installed and in PATH. Fail open if not."""
+    try:
+        subprocess.run(["sf", "--version"], capture_output=True, timeout=3)
+        return True
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return False
 
 
 def main():
@@ -221,6 +218,11 @@ def main():
     # Extract query info — skip non-query commands (~0ms)
     query_info = extract_query_info(command)
     if not query_info:
+        print(json.dumps(format_allow()))
+        sys.exit(0)
+
+    # Fail open if sf CLI not installed
+    if not sf_cli_available():
         print(json.dumps(format_allow()))
         sys.exit(0)
 

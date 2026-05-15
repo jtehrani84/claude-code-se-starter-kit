@@ -1,9 +1,16 @@
 {
-  // ~/.claude/settings.json — Claude Code configuration
-  // Copy this file to ~/.claude/settings.json and customize for your environment.
+  // ╔══════════════════════════════════════════════════════════════════════╗
+  // ║  ⚠️  DO NOT COPY THIS FILE TO ~/.claude/settings.json DIRECTLY     ║
+  // ║                                                                     ║
+  // ║  The LLMGW installer writes your auth key to settings.json.         ║
+  // ║  Copying this file OVERWRITES your auth and BREAKS Claude Code.     ║
+  // ║                                                                     ║
+  // ║  Instead: use setup.sh which MERGES hooks into your existing file.  ║
+  // ║  Or: manually copy individual blocks from here into your file.      ║
+  // ╚══════════════════════════════════════════════════════════════════════╝
   //
-  // This controls hooks, permissions, environment variables, and model selection.
-  // Changes here take effect on the next Claude Code session.
+  // This is a REFERENCE file showing all available configuration options.
+  // Your actual settings.json is managed by the LLMGW installer.
 
   // Model selection — use your organization's preferred model
   "model": "claude-sonnet-4-20250514",
