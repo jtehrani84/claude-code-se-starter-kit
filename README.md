@@ -82,6 +82,7 @@ Claude will scaffold everything interactively.
 | `/content-review` | 6-dimension reviewer: accuracy, voice, specificity, customer focus, actionability, credibility |
 | `/weekly-report` | Status report from git log, memory files, and session activity |
 | `/morning-brief` | Daily context load: overnight intel, yesterday's work, today's focus, suggested actions |
+| `/gas-deploy` | Apps Script deploy: push + deploy + verify, prevents the clasp push-only gotcha |
 
 ## Hooks (4 Scripts)
 
@@ -155,6 +156,20 @@ crons/                               # Optional: overnight intelligence
 |   +-- com.claude.gather.exa.plist  # macOS launchd schedule (4:30 AM)
 +-- raw/                             # Raw gather output (date-stamped)
 ```
+
+## Google Apps Script
+
+The kit includes a full Apps Script setup for automating Google Workspace. See `docs/apps-script-setup.md` for the complete guide.
+
+**Starter templates** in `templates/apps-script/`:
+
+| Template | What It Does |
+|----------|-------------|
+| `slides-from-sheet.gs` | Reads Sheet rows, generates a Slides deck with one slide per row |
+| `sheet-data-puller.gs` | HTTP endpoint that returns Sheet data as JSON — connect to Claude or middleware |
+| `email-merge.gs` | Sends personalized emails from a Sheet of contacts with merge fields |
+
+**Skill:** `/gas-deploy` wraps the push + deploy + verify workflow so you never hit the "clasp push doesn't update the web app" trap.
 
 ## Configuration
 
