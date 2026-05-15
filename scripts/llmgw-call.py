@@ -22,7 +22,7 @@ import os
 import sys
 import urllib.request
 
-LLMGW_BASE = "https://[YOUR-LLMGW-ENDPOINT]"
+LLMGW_BASE = "https://eng-ai-model-gateway.sfproxy.devx-preprod.aws-esvc1-useast2.aws.sfdc.cl"
 TOKEN = os.environ.get("ANTHROPIC_AUTH_TOKEN", "")
 
 ANTHROPIC_MODELS = {
