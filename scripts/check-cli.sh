@@ -123,6 +123,12 @@ REQUIRED_CMDS=(
     "node|--version|node|Hooks, MCP servers, npm packages"
     "python3|--version|python3|Hook scripts (session-init, guardrail)"
     "claude|--version|claude|Claude Code CLI itself"
+    "sf|--version|sf|Salesforce CLI: org ops, deploy, data, agent testing"
+    "gh|--version|gh|GitHub CLI: PR creation, issues, MCP server"
+    "gcloud|--version|gcloud|GCP: Cloud Run, infrastructure, deployment"
+    "slack|--version|slack|Slack CLI: channel automation, workflows"
+    "jq|--version|jq|JSON processing in hooks and scripts"
+    "clasp|--version|clasp|Google Apps Script deployment"
 )
 
 REQUIRED_INSTALLS=()
@@ -141,34 +147,6 @@ done
 echo ""
 
 # ═══════════════════════════════════════════════════
-# TIER 2: RECOMMENDED — Unlocks key skills
-# ═══════════════════════════════════════════════════
-
-echo -e "${YELLOW}Recommended${NC} — unlocks key skills and workflows:"
-echo ""
-
-RECOMMENDED_CMDS=(
-    "sf|--version|sf|Salesforce CLI: org ops, deploy, data, agent testing"
-    "gh|--version|gh|GitHub CLI: PR creation, issues (/ship, MCP server)"
-    "jq|--version|jq|JSON processing in hooks and scripts"
-)
-
-RECOMMENDED_INSTALLS=()
-
-for entry in "${RECOMMENDED_CMDS[@]}"; do
-    IFS='|' read -r cmd flag name purpose <<< "$entry"
-    result=$(check_cmd "$cmd" "$flag" "$name")
-    status="${result%%|*}"
-    version="${result##*|}"
-    print_row "$status" "$name" "$version" "$purpose" "recommended"
-    if [[ "$status" == "missing" ]]; then
-        RECOMMENDED_MISSING=$((RECOMMENDED_MISSING + 1))
-        RECOMMENDED_INSTALLS+=("$cmd")
-    fi
-done
-echo ""
-
-# ═══════════════════════════════════════════════════
 # TIER 3: OPTIONAL — Enables advanced features
 # ═══════════════════════════════════════════════════
 
@@ -176,9 +154,6 @@ echo -e "${DIM}Optional${NC} — enables advanced features and integrations:"
 echo ""
 
 OPTIONAL_CMDS=(
-    "gcloud|--version|gcloud|GCP: Cloud Run deploys, infrastructure"
-    "slack|--version|slack|Slack CLI: channel automation"
-    "clasp|--version|clasp|Google Apps Script deployment"
     "docker|--version|docker|Containerized services, local dev"
     "exa|version|exa|Web intelligence (powers /scan-intel crons)"
 )
