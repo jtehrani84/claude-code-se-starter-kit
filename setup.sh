@@ -34,6 +34,19 @@ echo -e "${CYAN}║  From Day 0 to Day 30 in 30 minutes         ║${NC}"
 echo -e "${CYAN}╚══════════════════════════════════════════════╝${NC}"
 echo ""
 
+# --- Step 0: CLI environment check ---
+echo -e "${GREEN}[0/5]${NC} Checking CLI environment..."
+echo ""
+
+if ! bash "$SCRIPT_DIR/scripts/check-cli.sh"; then
+    echo ""
+    echo -e "${RED}Required CLIs are missing. Install them and re-run setup.${NC}"
+    echo ""
+    exit 1
+fi
+
+echo ""
+
 # --- Step 1: Create directory structure ---
 echo -e "${GREEN}[1/5]${NC} Creating directory structure..."
 
