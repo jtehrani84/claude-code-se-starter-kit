@@ -119,5 +119,16 @@
 
     // Fires when Claude's stop turn completes
     "Stop": []
+  },
+
+  // MCP Servers — external tool providers
+  "mcpServers": {
+    // Salesforce SE Grounding Service — verified product knowledge, competitive intel, field insights
+    // Requires @salesforce.com Google auth + ZScaler VPN
+    // Provides: grounding_search, grounding_search_narrowed, kg_lookup, kg_traverse, kg_related_chunks, product_clouds, corpus_stats
+    "salesforce-grounding": {
+      "type": "url",
+      "url": "https://grounding.35-186-235-101.sslip.io/mcp"
+    }
   }
 }
