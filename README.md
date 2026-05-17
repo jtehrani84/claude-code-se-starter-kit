@@ -263,12 +263,77 @@ These extend the base kit significantly. Install from Claude Code marketplace:
 | **hookify** | Generate hooks from conversation patterns — "never do X again" becomes code | Marketplace → hookify |
 | **session-report** | End-of-session summary with token usage and work done | Marketplace → session-report |
 
+## SE Grounding Service
+
+Verified Salesforce product knowledge — 3,200+ FCD chunks with slide citations, competitive intel, field SE insights, and a 323-entity knowledge graph. One source of truth for every SE.
+
+**URL:** `https://grounding.35-186-235-101.sslip.io`
+**Setup guide:** `https://grounding.35-186-235-101.sslip.io/setup`
+
+### Browser Access (any SE)
+
+1. Connect to ZScaler VPN
+2. Go to `https://grounding.35-186-235-101.sslip.io`
+3. Click "Sign in with Google"
+4. Use your `@salesforce.com` Google Workspace account
+5. Search — results include FCD slide citations
+
+No approval needed, no API key, no setup. Non-salesforce.com accounts are rejected.
+
+### Claude Code MCP (SEs running Claude Code)
+
+1. ZScaler must be on
+2. Add to `~/.claude/settings.json` under `mcpServers`:
+```json
+"salesforce-grounding": {
+  "type": "url",
+  "url": "https://grounding.35-186-235-101.sslip.io/mcp"
+}
+```
+3. Restart Claude Code
+4. MCP tools are available:
+
+| Tool | What it does |
+|------|-------------|
+| `grounding_search` | Semantic search over verified FCD corpus |
+| `grounding_search_narrowed` | Graph-narrowed search (filter by product/competitor entities) |
+| `kg_lookup` | Find entities by name or type |
+| `kg_traverse` | Follow relationships through the knowledge graph |
+| `kg_related_chunks` | Get chunks linked to an entity |
+| `product_clouds` | List available product clouds with counts |
+| `corpus_stats` | Corpus and KG statistics |
+
+The MCP endpoint uses ZScaler as the network gate — no additional auth token needed.
+
+### REST API
+
+1. ZScaler on
+2. Sign in via browser (get session cookie) or call from authenticated context
+3. Endpoints:
+   - `POST /api/v1/search` — semantic vector search
+   - `POST /api/v1/search/entity-narrowed` — graph-narrowed search
+   - `POST /api/v1/search/bm25` — keyword fallback
+   - `GET /api/v1/kg/entities?q=&type=` — entity search
+   - `GET /api/v1/kg/traverse?from=&depth=` — graph traversal
+   - `GET /api/v1/search/stats` — corpus statistics
+
+### What's in the corpus
+
+- **20 FY27 First Call Decks** — Agentforce, Data 360, Commerce, MuleSoft, Tableau, Slack, Revenue, Sales, Service, Marketing, Platform, Headless 360
+- **Competitive intel** — positioning, objection handling, where we win/lose
+- **Field SE insights** — what's working, pricing/packaging Q&A, gotchas
+- **Customer stories** — proof points with metrics
+- **Knowledge graph** — 323 entities with relationships (has_feature, competes_with, in_industry, strong_product_fit)
+
+---
+
 ## Recommended MCP Servers
 
 Add these to `~/.claude/settings.json` under `mcpServers`:
 
 | Server | What It Does | Setup |
 |--------|-------------|-------|
+| **salesforce-grounding** | Verified FCD product knowledge, competitive intel, KG | ZScaler only — see above |
 | **GitHub** | PR creation, code search, issue management | `gh auth login` then add to settings |
 | **Exa** | Real-time web intelligence (powers /scan-intel crons) | Get API key at exa.ai |
 | **Context7** | Current documentation lookup for any framework | Free, no auth needed |
