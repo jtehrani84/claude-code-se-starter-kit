@@ -104,6 +104,12 @@
         "hooks": [
           { "type": "command", "command": "python3 ~/.claude/hooks/scripts/soql-schema-check.py" }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "python3 ~/.claude/hooks/scripts/gcp-tvm-guardrail.py", "timeout": 3000 }
+        ]
       }
     ],
 
