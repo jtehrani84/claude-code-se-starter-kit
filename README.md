@@ -283,14 +283,20 @@ No approval needed, no API key, no setup. Non-salesforce.com accounts are reject
 ### Claude Code MCP (SEs running Claude Code)
 
 1. ZScaler must be on
-2. Add to `~/.claude/settings.json` under `mcpServers`:
+2. Add to `~/.claude/.mcp.json` (create if it doesn't exist):
 ```json
-"salesforce-grounding": {
-  "type": "url",
-  "url": "https://grounding.35-186-235-101.sslip.io/mcp"
+{
+  "mcpServers": {
+    "salesforce-grounding": {
+      "type": "url",
+      "url": "https://grounding.35-186-235-101.sslip.io/mcp"
+    }
+  }
 }
 ```
-3. Restart Claude Code
+Or run: `claude mcp add --transport http salesforce-grounding https://grounding.35-186-235-101.sslip.io/mcp`
+
+3. Restart Claude Code — you'll be prompted to approve on first use
 4. MCP tools are available:
 
 | Tool | What it does |
@@ -329,7 +335,7 @@ The MCP endpoint uses ZScaler as the network gate — no additional auth token n
 
 ## Recommended MCP Servers
 
-Add these to `~/.claude/settings.json` under `mcpServers`:
+Add these to `~/.claude/.mcp.json` under `mcpServers`:
 
 | Server | What It Does | Setup |
 |--------|-------------|-------|
