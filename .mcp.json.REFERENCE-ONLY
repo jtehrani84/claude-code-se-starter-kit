@@ -9,6 +9,15 @@
     "salesforce-grounding": {
       "type": "url",
       "url": "https://grounding.35-186-235-101.sslip.io/mcp"
+    },
+
+    // Salesforce Docs MCP — official Trailhead, developer guides, release notes, help articles
+    // No auth required, public endpoint
+    // Provides: salesforce_docs_search, salesforce_docs_fetch
+    // Details: https://labs.agentforce.com/docs/salesforce-docs-mcp
+    "salesforce-docs": {
+      "type": "http",
+      "url": "https://salesforce-docs-76258744c9d7.herokuapp.com/api/mcp"
     }
   }
 }

@@ -340,6 +340,7 @@ Add these to `~/.claude/.mcp.json` under `mcpServers`:
 | Server | What It Does | Setup |
 |--------|-------------|-------|
 | **salesforce-grounding** | Verified FCD product knowledge, competitive intel, KG | ZScaler only — see above |
+| **salesforce-docs** | Official Trailhead, dev guides, release notes, help articles | No auth — [details](https://labs.agentforce.com/docs/salesforce-docs-mcp) |
 | **GitHub** | PR creation, code search, issue management | `gh auth login` then add to settings |
 | **Exa** | Real-time web intelligence (powers /scan-intel crons) | Get API key at exa.ai |
 | **Context7** | Current documentation lookup for any framework | Free, no auth needed |
