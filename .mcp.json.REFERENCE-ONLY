@@ -7,7 +7,7 @@
     // Requires ZScaler VPN active
     // Provides: grounding_search, grounding_search_narrowed, grounding_bm25, kg_lookup, kg_traverse, kg_entity_detail, kg_stats
     "salesforce-grounding": {
-      "type": "url",
+      "type": "http",
       "url": "https://grounding.35-186-235-101.sslip.io/mcp"
     },
 
