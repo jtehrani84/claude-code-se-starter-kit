@@ -9,9 +9,9 @@ This kit gives you the persistent context architecture that took 60 days of tria
 | Layer | What | Impact |
 |-------|------|--------|
 | **Identity** | Template CLAUDE.md with routing table | Claude knows your role, projects, and constraints from session 1 |
-| **Rules** | 3 governance files (voice, security, architecture) | Standards enforced automatically — no re-explaining |
-| **Hooks** | 4 scripts (session-init, guardrail, product-verification, output-quality-gate) | Context routes itself; mistakes get blocked or flagged |
-| **Skills** | 11 SE-specific workflows | From meeting prep to content quality to meta-skills |
+| **Rules** | 8 governance files (voice, security, architecture, platform, testing, LWC, agent script) | Standards enforced automatically — no re-explaining |
+| **Hooks** | 6 scripts (session-init, guardrail, product-verification, output-quality, SOQL-check, GCP-TVM) | Context routes itself; mistakes get blocked or flagged |
+| **Skills** | 24 SE-specific workflows | From meeting prep to content quality to meta-skills |
 | **Wiki** | Starter knowledge base with entity pages | Architecture decisions, people, reference docs — all organized |
 | **Crons** | Intelligence automation pipeline | Overnight Exa + HN scanning -> morning digest |
 | **Examples** | Compound loop walkthrough | See exactly how one mistake becomes a permanent fix |
@@ -134,7 +134,7 @@ See `examples/compound-loop/` for a complete walkthrough showing one real correc
 ```
 ~/.claude/
 |-- CLAUDE.md                        # Your identity + routing table (from template)
-|-- settings.json                    # Hook config, permissions, env vars (from settings.json.example)
+|-- settings.json                    # Hook config, permissions, env vars (from settings.json.REFERENCE-ONLY)
 |-- rules/                           # Always-loaded governance
 |   |-- communication.md             # Voice standards, anti-slop, banned words
 |   |-- security-governance.md       # CRUD/FLS, sharing, secrets
@@ -199,7 +199,7 @@ The kit includes a full Apps Script setup for automating Google Workspace. See `
 
 ## Configuration
 
-Copy `settings.json.example` to `~/.claude/settings.json` and customize:
+Copy `settings.json.REFERENCE-ONLY` to `~/.claude/settings.json` and customize:
 - Hook paths and matcher patterns
 - Permission allowlists (reduce permission prompts)
 - Environment variables

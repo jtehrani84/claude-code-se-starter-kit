@@ -58,7 +58,7 @@ VIOLATIONS = [
         "policy": "ff7fa09c",
         "severity": "P1",
         "message": "Cloud Run deploy without --service-account uses default Compute Engine SA. Always specify a dedicated SA.",
-        "fix": "Add --service-account=<name>@ehc-jtehrani-ec5278.iam.gserviceaccount.com",
+        "fix": "Add --service-account=<name>@<your-project-id>.iam.gserviceaccount.com",
     },
     # Compute instance with public IP (no --no-address flag)
     {

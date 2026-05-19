@@ -14,31 +14,31 @@ one interactive Claude Code session first (the OAuth token caches).
 ### Competitive Intelligence
 | Channel | ID | What to Extract |
 |---------|-----|----------------|
-| #tmt-solutions | C06JUMC5K5G | CI drops, competitor announcements |
-| #analyst-coverage | C01LYQ8PMG8 | IDC/ISG/Gartner reports, market share |
+| #[your-OU]-solutions | [YOUR_ID] | CI drops, competitor announcements |
+| #analyst-coverage | [YOUR_ID] | IDC/ISG/Gartner reports, market share |
 | [your-OU]-competitive | [YOUR_ID] | OU-specific competitive intel |
 
 ### AI & Tooling
 | Channel | ID | What to Extract |
 |---------|-----|----------------|
-| #ai-club | C04N3N3Q4P9 | Internal AI experiments, techniques |
-| #ai-engineering-productivity | C04QLC0H355 | AI dev tools, productivity hacks |
-| #solutions-ai-tooling | C083WL75LDA | SE-specific AI tooling |
-| #pop-ai | C06DZ4J5T4K | AI product updates |
+| #ai-club | [YOUR_ID] | Internal AI experiments, techniques |
+| #ai-engineering-productivity | [YOUR_ID] | AI dev tools, productivity hacks |
+| #solutions-ai-tooling | [YOUR_ID] | SE-specific AI tooling |
+| #pop-ai | [YOUR_ID] | AI product updates |
 
 ### Territory & Leadership
 | Channel | ID | What to Extract |
 |---------|-----|----------------|
 | [your-OU]-everyone | [YOUR_ID] | OU announcements, priorities |
 | [your-OU]-solutions | [YOUR_ID] | SE team updates |
-| #broadcast-solutions | C054FPAR4CW | Solutions org-wide announcements |
-| #broadcast-us | C01V8SJTL1J | US-wide Salesforce announcements |
+| #broadcast-solutions | [YOUR_ID] | Solutions org-wide announcements |
+| #broadcast-us | [YOUR_ID] | US-wide Salesforce announcements |
 
 ### Product & Platform
 | Channel | ID | What to Extract |
 |---------|-----|----------------|
-| #all-technology | C01GX2H6189 | Product launches, updates |
-| #all-salesforce | C01GFLYUMSM | Company-wide announcements |
+| #all-technology | [YOUR_ID] | Product launches, updates |
+| #all-salesforce | [YOUR_ID] | Company-wide announcements |
 | [product-specific] | [YOUR_ID] | Product you demo most |
 
 ### Industry

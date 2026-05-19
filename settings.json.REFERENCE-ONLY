@@ -129,5 +129,4 @@
 
   // MCP Servers — now configured in ~/.claude/.mcp.json (separate file)
   // See .mcp.json.REFERENCE-ONLY for MCP server configuration
-  }
 }

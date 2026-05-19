@@ -154,7 +154,7 @@ Pre-built directory structure so you never have to think about organization.
 
 | File | What It Does | How It Helps |
 |------|-------------|-------------|
-| `settings.json.example` | Complete Claude Code settings with hooks, permissions, env vars, model config | Copy and customize — don't start from scratch |
+| `settings.json.REFERENCE-ONLY` | Complete Claude Code settings with hooks, permissions, env vars, model config | Copy and customize — don't start from scratch |
 | `templates/CLAUDE.md` | Identity template with routing table, role definition, essential standards | Your orchestration manifest — Claude knows who you are from session 1 |
 | `QUICKSTART-PROMPT.md` | Paste into Claude Code for interactive guided setup | Claude builds your personalized config by asking you questions |
 
