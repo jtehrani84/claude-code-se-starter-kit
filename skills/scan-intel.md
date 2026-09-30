@@ -1,14 +1,27 @@
-Scan for the latest AI, Claude Code, and Salesforce developments. This is a daily intelligence sweep combining X feed + Exa search.
+Scan for the latest AI, Claude Code, and Salesforce developments. This is a daily intelligence sweep built on Exa search, plus your X feed if you've set one up.
 
-## Source 1: X "For You" Feed (authenticated)
+## Source 1: X "For You" Feed (Optional)
 
-Pull your authenticated X timeline using the feed fetcher script (if configured):
+This source only runs if you've set up a feed script, the kit doesn't ship one. To plug in your own, save a Python script at `~/.claude/hooks/scripts/x-feed-fetcher.py` that prints your feed as JSON to stdout.
+
+Check for it and run it in one step:
 
 ```bash
-python3 ~/.claude/hooks/scripts/x-feed-fetcher.py > /tmp/x-feed-today.json
+if test -f ~/.claude/hooks/scripts/x-feed-fetcher.py; then
+  if python3 ~/.claude/hooks/scripts/x-feed-fetcher.py > /tmp/x-feed-today.json &&
+     python3 -m json.tool /tmp/x-feed-today.json > /dev/null 2>&1; then
+    echo "X feed: fetched"
+  else
+    echo "X feed: fetch failed, skipped"
+  fi
+else
+  echo "X feed: not configured, skipped"
+fi
 ```
 
-This returns up to 40 tweets from the "For You" algorithm. Parse the JSON and filter for tweets relevant to:
+If it prints `X feed: not configured, skipped` or `X feed: fetch failed, skipped`, don't stop, ask about it, or try to fix the script mid-scan, just put that exact line at the top of the saved digest and go straight to Source 2. The rest of the scan runs the same on the Exa results alone.
+
+If it prints `X feed: fetched`, parse `/tmp/x-feed-today.json` and filter for tweets relevant to:
 - Claude Code, Anthropic, Claude API
 - AI agents, MCP, agent frameworks
 - Salesforce, Agentforce, Data Cloud
@@ -39,7 +52,7 @@ curl -s "https://api.exa.ai/search" \
 Set `startPublishedDate` to 7 days ago from today.
 
 ## For Each Finding, Report:
-1. **Source** — X feed or Exa (with @handle or URL)
+1. **Source** — Exa (with URL), or X feed (with @handle) only when Source 1 printed `X feed: fetched`
 2. **Title/Summary** — what was found
 3. **Why it matters** — specifically for your role, your accounts, or your technical setup
 4. **Action item** (if any):

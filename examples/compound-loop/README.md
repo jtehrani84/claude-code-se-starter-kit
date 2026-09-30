@@ -85,7 +85,7 @@ See `guardrail-example.py` in this directory. This script:
 
 1. Fires after any Write operation on `.md` or `.html` files
 2. Scans the written content for banned words
-3. If any are found, outputs a warning with the exact words and line numbers
+3. If any are found, prints the exact words and line numbers as `hookSpecificOutput.additionalContext`, the field Claude Code puts next to the tool result
 4. Claude sees the warning and rewrites
 
 ---

@@ -138,30 +138,31 @@ def main():
 
     # Only process Write operations
     if tool_name != "Write":
-        print(json.dumps({"result": "continue"}))
-        return
+        sys.exit(0)
 
     file_path = tool_input.get("file_path", "")
 
     # Only check content files
     if not file_path.endswith(CONTENT_EXTENSIONS):
-        print(json.dumps({"result": "continue"}))
-        return
+        sys.exit(0)
 
     content = tool_input.get("content", "")
 
     # Skip short files (config, templates, etc.)
     if count_words(content) < MIN_WORD_COUNT:
-        print(json.dumps({"result": "continue"}))
-        return
+        sys.exit(0)
 
     violations = scan_for_violations(content)
 
     if violations:
         warning = format_warning(violations, file_path)
-        print(json.dumps({"result": "continue", "warning": warning}))
-    else:
-        print(json.dumps({"result": "continue"}))
+        print(json.dumps({
+            "hookSpecificOutput": {
+                "hookEventName": "PostToolUse",
+                "additionalContext": warning,
+            }
+        }))
+    sys.exit(0)
 
 
 if __name__ == "__main__":

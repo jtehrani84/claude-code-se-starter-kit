@@ -1,0 +1,12 @@
+# sha256 of every hook version this kit has shipped (filename sha256).
+# setup.sh upgrades an installed hook only when it matches one of these, i.e. you never edited it.
+gcp-tvm-guardrail.py a2c21b7fa0209ebfb8ec8d1e055b492639b76c6c727bebf5e6c71ff57946c430
+gcp-tvm-guardrail.py dd28b6ea33dac0ac9f87119c072332dd9831fcbc14b923001aeb1b3ef8dc1f3d
+guardrail.py 1e3a68d1f1cc5c23ad86cb23add3a65e2f6a3b06382213d5c216c85d61f7861a
+output-quality-gate.py 36742ed6ffa0cf3a781fc36d9003a90519e1a9a757fda540161b9cebeb69583f
+product-verification.py af250010a1e8b2348368abb45127862dabf37f77f5d74ea09fbcff44c50b2632
+session-init.py b263ceeaa1855a0374e3efe5650e23336b00c9d49fcc7f95b9d9c6abf990f259
+session-init.py f07a69e4f777575fe84e925954b9f9223363843b714be29868875758a218ecd6
+soql-schema-check.py e251b35b3093d53ce67f6eab92e629147edaccbfc2115da3c900e42de6b9fc9f
+soql-schema-check.py ffa816b9a726435ad4ffb889486200485769062a2ec300fbbd300a3fd0d1b59a
+voice-tell-gate.py 1b7575848547b22fcd758f8af96a43ca9c74cfc6756fecdc4e25f82d704a6470

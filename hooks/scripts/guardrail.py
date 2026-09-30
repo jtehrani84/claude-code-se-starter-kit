@@ -36,7 +36,7 @@ BLOCKED_PATTERNS = [
         "tool": "Bash",
     },
     {
-        "pattern": r"rm -rf /|rm -rf ~|rm -rf \.",
+        "pattern": r"rm\s+-rf\s+(/|/\*|~|~/|\.|\./|\*)(\s|$|;|&|\|)",  # the bare target only; rm -rf ./build is fine
         "message": "BLOCKED: Recursive delete on root/home/project directory. Too dangerous.",
         "tool": "Bash",
     },
@@ -79,16 +79,20 @@ def main():
 
     violation = check_command(tool_name, tool_input)
 
-    if violation:
-        # Block the action and show the warning
-        output = {
-            "result": "block",
-            "reason": violation,
-        }
-    else:
-        output = {"result": "continue"}
+    if not violation:
+        sys.exit(0)  # no decision; normal permission flow applies
 
-    print(json.dumps(output))
+    # Claude Code PreToolUse contract: hookSpecificOutput.permissionDecision.
+    # BLOCKED rules deny outright; WARNING rules make the user confirm.
+    decision = "deny" if violation.startswith("BLOCKED") else "ask"
+    print(json.dumps({
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": decision,
+            "permissionDecisionReason": violation,
+        }
+    }))
+    sys.exit(0)
 
 
 if __name__ == "__main__":

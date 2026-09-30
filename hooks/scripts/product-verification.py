@@ -108,8 +108,7 @@ def main():
 
     # Only check Edit and Write operations
     if tool_name not in ("Edit", "Write"):
-        print(json.dumps({"result": "continue"}))
-        return
+        sys.exit(0)
 
     # Get the content being written
     content = ""
@@ -119,8 +118,7 @@ def main():
         content = tool_input.get("new_string", "")
 
     if not content:
-        print(json.dumps({"result": "continue"}))
-        return
+        sys.exit(0)
 
     warnings = check_content(content)
 
@@ -128,14 +126,13 @@ def main():
         # Don't block — just warn. Product names might be in quoted
         # historical context or comparisons.
         combined = " | ".join(warnings[:3])  # Cap at 3 warnings
-        output = {
-            "result": "continue",
-            "warning": f"Product Verification: {combined}",
-        }
-    else:
-        output = {"result": "continue"}
-
-    print(json.dumps(output))
+        print(json.dumps({
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "additionalContext": f"Product Verification: {combined}",
+            }
+        }))
+    sys.exit(0)
 
 
 if __name__ == "__main__":

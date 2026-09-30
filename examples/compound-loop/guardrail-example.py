@@ -44,13 +44,11 @@ def main():
 
     # Only check Write operations on content files
     if tool_name != "Write":
-        print(json.dumps({"result": "continue"}))
-        return
+        sys.exit(0)  # nothing to say: exit 0, no output
 
     file_path = tool_input.get("file_path", "")
     if not file_path.endswith((".md", ".html", ".txt")):
-        print(json.dumps({"result": "continue"}))
-        return
+        sys.exit(0)  # nothing to say: exit 0, no output
 
     content = tool_input.get("content", "")
     violations = scan_content(content)
@@ -65,9 +63,14 @@ def main():
             f"Locations: {locations}. "
             f"Rewrite these sections using plain, human language."
         )
-        print(json.dumps({"result": "continue", "warning": warning}))
-    else:
-        print(json.dumps({"result": "continue"}))
+        # PostToolUse: additionalContext lands next to the tool result, where Claude reads it.
+        print(json.dumps({
+            "hookSpecificOutput": {
+                "hookEventName": "PostToolUse",
+                "additionalContext": warning,
+            }
+        }))
+    sys.exit(0)
 
 
 if __name__ == "__main__":

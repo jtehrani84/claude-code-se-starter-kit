@@ -134,10 +134,19 @@ if [[ "${1:-}" == "--uninstall" ]]; then
         [[ -f "$target" ]] && FILES_TO_REMOVE+=("$target")
     done
 
+    # Hooks: remove only the kit's current or an earlier kit version, never a hook you edited.
     for hook_file in "$SCRIPT_DIR/hooks/scripts/"*.py; do
         filename=$(basename "$hook_file")
         target="$CLAUDE_DIR/hooks/scripts/$filename"
-        [[ -f "$target" ]] && FILES_TO_REMOVE+=("$target")
+        [[ -f "$target" ]] || continue
+        if cmp -s "$hook_file" "$target"; then
+            FILES_TO_REMOVE+=("$target")
+        elif [[ -f "$SCRIPT_DIR/hooks/prior-kit-hashes.txt" ]] && \
+             grep -qx "$filename $(python3 -c 'import hashlib,sys; print(hashlib.sha256(open(sys.argv[1],"rb").read()).hexdigest())' "$target")" "$SCRIPT_DIR/hooks/prior-kit-hashes.txt"; then
+            FILES_TO_REMOVE+=("$target")
+        else
+            echo -e "  ${YELLOW}⚠ keeping $filename (you edited it)${NC}"
+        fi
     done
 
     for skill_file in "$SCRIPT_DIR/skills/"*.md; do
@@ -245,11 +254,24 @@ echo ""
 # --- Step 3: Copy hooks ---
 echo -e "${GREEN}[3/7]${NC} Installing hooks..."
 
+# An installed hook that is byte-identical to a hook version this kit shipped earlier is
+# upgraded in place (you never edited it). Anything else is yours and is left alone.
+PRIOR_HASHES="$SCRIPT_DIR/hooks/prior-kit-hashes.txt"
+sha256_of() { python3 -c 'import hashlib,sys; print(hashlib.sha256(open(sys.argv[1],"rb").read()).hexdigest())' "$1"; }
+
 for hook_file in "$SCRIPT_DIR/hooks/scripts/"*.py; do
     filename=$(basename "$hook_file")
     dest="$CLAUDE_DIR/hooks/scripts/$filename"
-    if [[ -f "$dest" ]]; then
-        echo -e "  ${YELLOW}⚠ $filename already exists — skipping${NC}"
+    if [[ -f "$dest" ]] && cmp -s "$hook_file" "$dest"; then
+        echo "  ✓ $filename already current"
+    elif [[ -f "$dest" ]] && [[ -f "$PRIOR_HASHES" ]] && grep -qx "$filename $(sha256_of "$dest")" "$PRIOR_HASHES"; then
+        if [[ "$DRY_RUN" == false ]]; then
+            cp "$hook_file" "$dest"
+            chmod +x "$dest"
+        fi
+        echo "  ✓ $filename upgraded (was an unedited earlier kit version)"
+    elif [[ -f "$dest" ]]; then
+        echo -e "  ${YELLOW}⚠ $filename exists and differs from every kit version (kept yours; compare with $hook_file)${NC}"
     else
         if [[ "$DRY_RUN" == false ]]; then
             cp "$hook_file" "$dest"

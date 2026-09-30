@@ -10,7 +10,7 @@ Supersedes output-quality-gate.py, which stays as the lightweight, node-free fal
 only). Nudge only — never blocks. If node or the engine isn't available, it stays silent rather than
 break the session.
 
-Fires on: Write (PostToolUse). Reads tool_input from stdin (JSON). Outputs {"result":"continue", warning?}.
+Fires on: Write (PostToolUse). Reads tool_input from stdin (JSON). Outputs hookSpecificOutput.additionalContext when there is a signal; silent otherwise.
 """
 import json
 import os
@@ -24,10 +24,13 @@ AISCORE = os.path.join(HERE, "..", "..", "tools", "aiscore.mjs")
 
 
 def cont(warning=None):
-    out = {"result": "continue"}
     if warning:
-        out["warning"] = warning
-    print(json.dumps(out))
+        print(json.dumps({
+            "hookSpecificOutput": {
+                "hookEventName": "PostToolUse",
+                "additionalContext": warning,
+            }
+        }))
     sys.exit(0)
 
 

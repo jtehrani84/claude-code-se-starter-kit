@@ -28,7 +28,12 @@
         @media print {
             body { padding: 0.4in 0.5in; }
             h2 { page-break-after: avoid; }
-            table { page-break-inside: avoid; }
+            h2, h3, .section-intro { break-after: avoid; }
+            /* Long tables (rules, hooks, voice engine, configuration) may split between rows; the header row repeats. */
+            thead { display: table-header-group; }
+            tr, .highlight, .compound-flow, .summary-grid { break-inside: avoid; }
+            /* Short sections stay on one page. */
+            .keep { break-inside: avoid; }
             .no-print { display: none; }
         }
         .summary-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8pt; margin: 10pt 0; }
@@ -40,56 +45,71 @@
 <body>
     <h1>Claude Code SE Starter Kit</h1>
     <p class="subtitle">Complete Inventory — What's Included, What It Does, and Why</p>
-    <p class="meta">github.com/jtehrani84/claude-code-se-starter-kit | Version: May 2026 | Author: John Tehrani, Principal Strategic SE</p>
+    <p class="meta">github.com/jtehrani84/claude-code-se-starter-kit | Version: September 2026 | Author: John Tehrani, Principal Strategic SE</p>
 
     <div class="summary-grid">
-        <div class="summary-card"><div class="number">8</div><div class="label">Rules</div></div>
-        <div class="summary-card"><div class="number">6</div><div class="label">Hooks</div></div>
-        <div class="summary-card"><div class="number">22</div><div class="label">Skills</div></div>
-        <div class="summary-card"><div class="number">6</div><div class="label">Crons</div></div>
-        <div class="summary-card"><div class="number">1</div><div class="label">Knowledge Graph</div></div>
-        <div class="summary-card"><div class="number">55+</div><div class="label">Total Files</div></div>
+        <div class="summary-card"><div class="number">13</div><div class="label">Rules</div></div>
+        <div class="summary-card"><div class="number">6 + 2</div><div class="label">Hooks (Wired + Opt-In)</div></div>
+        <div class="summary-card"><div class="number">25</div><div class="label">Skills</div></div>
+        <div class="summary-card"><div class="number">5</div><div class="label">Cron Scripts</div></div>
+        <div class="summary-card"><div class="number">1</div><div class="label">Reference Agent</div></div>
+        <div class="summary-card"><div class="number">149</div><div class="label">Total Files</div></div>
     </div>
 
     <div class="highlight">
-        <p><strong>The thesis:</strong> A fresh Claude Code install is a genius with amnesia. This kit gives it institutional memory, quality enforcement, and compound learning from Day 1. Every session makes the next one better. Every correction persists forever. The system builds itself from your work.</p>
+        <p><strong>The thesis:</strong> A fresh Claude Code install is a genius with amnesia. This kit gives it standing instructions, scripts that run around its tool calls, and a place to keep your corrections, so a mistake you fix once gets written down as a memory or a rule instead of fixed again next week. How much it learns depends on how often you feed those corrections back in.</p>
     </div>
 
     <!-- RULES -->
-    <h2>Rules <span class="count-badge">8</span></h2>
-    <p class="section-intro">Loaded automatically every session. Claude reads these as standards — no re-explaining needed. Ever.</p>
+    <div class="section">
+    <h2>Rules <span class="count-badge">13</span></h2>
+    <p class="section-intro">Twelve of these load in every session on their own, and <code>slds2-lwc-ui.md</code> is scoped by its <code>paths:</code> frontmatter to LWC and Aura files. Claude reads them as standing instructions, so you don't have to re-explain your standards in each new conversation.</p>
     <table>
         <thead><tr><th>Rule</th><th>What It Enforces</th><th>Value</th></tr></thead>
         <tbody>
-            <tr><td><code>communication.md</code></td><td>SE voice: 50+ banned AI-slop words, email under 200 words, customer-centric framing, Slack conventions</td><td>Every output sounds like you wrote it</td></tr>
-            <tr><td><code>security-governance.md</code></td><td>CRUD/FLS checks, sharing model, secrets handling, security review checklist on all code</td><td>Never generates insecure code</td></tr>
+            <tr><td><code>communication.md</code></td><td>SE voice: email under 200 words, Slack conventions, 70/30 customer-facing framing, banned email patterns, anti-slop against the banned list in your CLAUDE.md</td><td>Every output sounds like you wrote it</td></tr>
+            <tr><td><code>security-governance.md</code></td><td>CRUD/FLS and sharing enforcement, secrets handling, customer vs. internal content separation, permission sets over profiles, and what never goes into git</td><td>Secure defaults, and sensitive data stays out of prompts and commits</td></tr>
             <tr><td><code>architecture.md</code></td><td>Decision framework, preferred patterns, anti-patterns, change design documentation template</td><td>Consistent architecture decisions</td></tr>
-            <tr><td><code>agent-script.md</code></td><td>Agentforce/Agent Script conventions, deterministic routing patterns</td><td>Correct agent authoring</td></tr>
-            <tr><td><code>salesforce-instructions.md</code></td><td>Senior SF SE persona, platform-first, inspect before proposing, small reversible changes</td><td>Claude acts like an experienced SE</td></tr>
+            <tr><td><code>agent-script.md</code></td><td>Agent Script file structure, the two-level action pattern, and syntax gotchas (written in May 2026 with <code>topic</code> blocks)</td><td>Syntax help; for the current <code>subagent</code> pattern, follow <code>BUILD-SPEC.md</code> and <code>reference-agent/</code></td></tr>
+            <tr><td><code>salesforce-instructions.md</code></td><td>Senior SF SE persona, platform-first, inspect metadata before proposing, small reversible changes</td><td>Claude acts like an experienced SE</td></tr>
             <tr><td><code>salesforce-platform.md</code></td><td>Bulk-safe Apex, thin triggers, one per object, LWC patterns, named credentials</td><td>Production-quality SF code</td></tr>
-            <tr><td><code>testing-quality.md</code></td><td>Realistic test data, meaningful assertions, quality gate mindset, no seeAllData</td><td>Tests that catch real bugs</td></tr>
-            <tr><td><code>slds2-lwc-ui.md</code></td><td>SLDS 2 styling hooks, token migration, no hardcoded values, no class overrides</td><td>Modern, compliant LWC</td></tr>
+            <tr><td><code>testing-quality.md</code></td><td>Realistic test data, meaningful assertions, quality gate mindset, <code>seeAllData</code> only as a last resort</td><td>Tests that catch real bugs</td></tr>
+            <tr><td><code>slds2-lwc-ui.md</code></td><td>Base components first, SLDS 2 styling hooks with fallbacks, design tokens, no overrides of Salesforce-owned classes, accessibility; path-scoped to LWC and Aura files</td><td>Modern, compliant LWC</td></tr>
+            <tr><td><code>proof-before-claim.md</code></td><td>"Done" needs a signal from the running system, not a commit or a clean compile</td><td>Stops confident "it's shipped" when nothing is behind it</td></tr>
+            <tr><td><code>findings-are-perishable.md</code></td><td>Re-check an old "X is broken" finding against the current artifact before acting on it</td><td>Stops you fixing things that were already fixed</td></tr>
+            <tr><td><code>claims-faithful-to-source.md</code></td><td>Re-read each claim against its source before an external doc ships; tag documented / inferred</td><td>Stops polished docs that quietly overstate the source</td></tr>
+            <tr><td><code>refutation-needs-the-right-oracle.md</code></td><td>Before calling something "fabricated," check the source where it would live if true</td><td>Stops confident wrong "that's made up" verdicts</td></tr>
+            <tr><td><code>structural-voice.md</code></td><td>Structure-level anti-AI rules: section symmetry, cadence, calibrated hedging</td><td>Content reads like a person wrote it, not just clean of banned words</td></tr>
         </tbody>
     </table>
+    </div>
 
     <!-- HOOKS -->
-    <h2>Hooks <span class="count-badge">6</span></h2>
-    <p class="section-intro">Code that runs mechanically before/after Claude acts. Unlike rules (which can be forgotten in long sessions), hooks execute as scripts. They intercept mistakes at the moment of action.</p>
+    <div class="section">
+    <h2>Hooks <span class="count-badge">6 wired + 2 opt-in</span></h2>
+    <p class="section-intro">Hooks are scripts Claude Code runs before or after a tool call, so they don't depend on Claude remembering a rule late in a long session. They're written to catch a destructive command, a made-up product name, or a banned word at the moment it happens.</p>
     <table>
         <thead><tr><th>Hook</th><th>When</th><th>What It Does</th><th>Value</th></tr></thead>
         <tbody>
-            <tr><td><code>session-init.py</code></td><td>Session start</td><td>Routes relevant wiki pages, surfaces recent work, shows nudges for overdue actions</td><td>Every session starts with context</td></tr>
-            <tr><td><code>guardrail.py</code></td><td>Before Edit/Write</td><td>Blocks unsafe architecture patterns before code is written</td><td>Prevents infra violations at point of action</td></tr>
-            <tr><td><code>product-verification.py</code></td><td>Before Edit/Write</td><td>Catches hallucinated SF product names (Einstein Copilot, Agentforce Script, etc.) with corrections</td><td>No wrong product names in customer content</td></tr>
-            <tr><td><code>output-quality-gate.py</code></td><td>After Write</td><td>Scans .md/.html for 50+ banned words, reports exact line numbers</td><td>Content quality enforced mechanically</td></tr>
-            <tr><td><code>graph-auto-index.py</code></td><td>After Write/Edit</td><td>Indexes entities into SQLite knowledge graph, computes REFERENCES and RELATES_TO edges</td><td>Knowledge graph grows from your work</td></tr>
-            <tr><td><code>soql-schema-check.py</code></td><td>Before SOQL</td><td>Validates field names against org schema before query execution</td><td>Catches bad SOQL before deploy</td></tr>
+            <tr><td><code>session-init.py</code></td><td>Session start</td><td>Suggests wiki pages from your routing table by directory and branch, and shows the branch and uncommitted-change count</td><td>Every session starts with context</td></tr>
+            <tr><td><code>guardrail.py</code></td><td>Before Bash</td><td>Denies force-push to main, <code>--set-env-vars</code>, and <code>rm -rf</code> on <code>/</code>, <code>~</code>, or <code>.</code>, and asks you to confirm <code>git reset --hard</code></td><td>Stops destructive mistakes at the point of action</td></tr>
+            <tr><td><code>product-verification.py</code></td><td>Before Edit/Write</td><td>Flags hallucinated SF product names (Einstein Copilot, Agentforce Script, etc.) and writes a suggested correction</td><td>No more "Einstein Copilot" or "Agentforce Script" in customer content</td></tr>
+            <tr><td><code>soql-schema-check.py</code></td><td>Before Bash (<code>sf data query</code>)</td><td>Checks sObject and field names against the org's describe before the query runs, and denies the query with a "did you mean?" when a name doesn't exist</td><td>Catches bad SOQL before it fails in the org</td></tr>
+            <tr><td><code>output-quality-gate.py</code></td><td>After Write</td><td>Scans written .md, .html, and .txt files of 200+ words for 46 banned words and 20 phrases, and writes a warning with line numbers</td><td>Lightweight, node-free fallback for content quality</td></tr>
+            <tr><td><code>voice-tell-gate.py</code></td><td>After Write</td><td>Runs the full voice engine (score + your overlay + cadence) on written .md, .html, and .txt files of 100+ words and writes a nudge; never blocks</td><td>Catches the rhythm tells a word list can't, and says so when it isn't calibrated to you yet</td></tr>
+            <tr><td><code>gcp-tvm-guardrail.py</code></td><td>Before Bash, <strong>opt-in</strong></td><td>GCP security-compliance checks before deploys; hands Claude an advisory next to the command, never blocks</td><td>Setup copies it but doesn't wire it, since it only helps if you deploy to GCP</td></tr>
+            <tr><td><code>graph-auto-index.py</code></td><td>After Write/Edit, <strong>opt-in</strong></td><td>Indexes entities into the SQLite knowledge graph and computes REFERENCES and RELATES_TO edges (it writes to the database directly and doesn't talk back to Claude)</td><td>Lives in <code>hooks/scripts-optional/</code>, so setup never installs it</td></tr>
         </tbody>
     </table>
+    <div class="highlight">
+        <p><strong>How the hooks talk back.</strong> Every hook now uses the output format from the Claude Code hooks reference. A block is <code>hookSpecificOutput.permissionDecision</code> set to <code>"deny"</code>, or <code>"ask"</code> when you should confirm, and a nudge is <code>hookSpecificOutput.additionalContext</code>, which Claude reads next to the tool result. Earlier versions of this kit printed <code>{"result": "block"}</code>, a field Claude Code doesn't read, so the guardrail spotted a force-push and let it run anyway. I checked both versions with a headless <code>claude -p</code> run in a scratch repo with no remote: the old hook let <code>git push --force origin main</code> through, and the new one stopped it and quoted the reason back, even in bypass-permissions mode. If you installed before this fix, re-run <code>./setup.sh</code>. It upgrades any hook you haven't edited and leaves the ones you have alone.</p>
+    </div>
+    </div>
 
     <!-- SKILLS -->
-    <h2 class="page-break">Skills <span class="count-badge">22</span></h2>
-    <p class="section-intro">Each skill replaces 15-60 minutes of manual work. Say the command, get the output.</p>
+    <div class="keep">
+    <h2>Skills <span class="count-badge">25</span></h2>
+    <p class="section-intro">The time-saved column is my own estimate for each skill, and the range runs from about 15 minutes to 2 hours of manual work per run.</p>
 
     <h3>Core SE Workflows (7)</h3>
     <table>
@@ -104,29 +124,37 @@
             <tr><td><code>/solution-design</code></td><td>Solution architecture for customer deals with branded deliverables</td><td>2 hrs → 15 min</td></tr>
         </tbody>
     </table>
+    </div>
 
-    <h3>Quality Assurance (3)</h3>
+    <div class="keep">
+    <h3>Quality Assurance (5)</h3>
     <table>
         <thead><tr><th>Command</th><th>What It Does</th><th>Time Saved</th></tr></thead>
         <tbody>
-            <tr><td><code>/validate</code></td><td>Cross-model quality gate: 5 dimensions, SHIP / FIX FIRST / REWRITE verdict</td><td>Manual review → automated</td></tr>
+            <tr><td><code>/validate</code></td><td>Quality gate: 6 dimensions scored 1–10, SHIP / FIX FIRST / REWRITE verdict</td><td>Manual review → automated</td></tr>
+            <tr><td><code>/review</code></td><td>Sends a draft to a model from a different lab (OpenAI, Google, or xAI) for an adversarial read</td><td>A second opinion that doesn't share Claude's blind spots</td></tr>
             <tr><td><code>/voice-check</code></td><td>Anti-slop scanner: full 50+ word banned list, replacements, pass/fail</td><td>Catches what you'd miss</td></tr>
+            <tr><td><code>/voice-judge</code></td><td>Gestalt read of a draft the way an expert reader would; can veto a clean score</td><td>Catches the tells regex can't</td></tr>
             <tr><td><code>/content-review</code></td><td>6-dimension reviewer: accuracy, voice, specificity, customer-centricity, actionability, credibility</td><td>Peer review → instant</td></tr>
         </tbody>
     </table>
+    </div>
 
-    <h3>Intelligence & Growth (5)</h3>
+    <div class="keep">
+    <h3>Intelligence &amp; Growth (5)</h3>
     <table>
         <thead><tr><th>Command</th><th>What It Does</th><th>Time Saved</th></tr></thead>
         <tbody>
             <tr><td><code>/morning-brief</code></td><td>Daily context: overnight intel, git status, memory changes, suggested actions</td><td>15 min → instant</td></tr>
-            <tr><td><code>/scan-intel</code></td><td>Intelligence sweep: web + social → categorized ADOPT / EVALUATE / WATCH</td><td>30 min → 3 min</td></tr>
+            <tr><td><code>/scan-intel</code></td><td>Daily sweep: Exa web search, plus your X feed if you've set one up → categorized ADOPT NOW / EVALUATE / WATCH</td><td>30 min → 3 min</td></tr>
             <tr><td><code>/ingest</code></td><td>Process any source (PDF, URL, doc) into wiki pages with entity extraction</td><td>Manual notes → structured</td></tr>
             <tr><td><code>/week-plan</code></td><td>Weekly planning: deals + intel + projects + priorities + blockers</td><td>30 min → 5 min</td></tr>
             <tr><td><code>/weekly-report</code></td><td>Status from git + memory + wiki → shipped / in-progress / blocked</td><td>Manual tracking → auto</td></tr>
         </tbody>
     </table>
+    </div>
 
+    <div class="keep">
     <h3>System Maintenance (4)</h3>
     <table>
         <thead><tr><th>Command</th><th>What It Does</th><th>Time Saved</th></tr></thead>
@@ -134,56 +162,108 @@
             <tr><td><code>/curate</code></td><td>Memory maintenance: staleness scan, promotion, inbox processing, orphan detection</td><td>Knowledge stays healthy</td></tr>
             <tr><td><code>/wiki-lint</code></td><td>Wiki health check: orphans, dead links, stale pages, broken structure</td><td>Wiki stays trustworthy</td></tr>
             <tr><td><code>/system-health</code></td><td>Diagnostics: hooks firing, rules loading, graph growing</td><td>Debug your setup</td></tr>
-            <tr><td><code>/graph-query</code></td><td>Query knowledge graph: relationships, connections, related files, hub entities</td><td>"What relates to X?" → instant</td></tr>
+            <tr><td><code>/graph-query</code></td><td>Query the knowledge graph: relationships, connections, related files, hub entities</td><td>"What relates to X?" → instant</td></tr>
         </tbody>
     </table>
+    </div>
 
-    <h3>Compound Loop (3)</h3>
+    <div class="keep">
+    <h3>Compound Loop (2)</h3>
     <table>
         <thead><tr><th>Command</th><th>What It Does</th><th>Time Saved</th></tr></thead>
         <tbody>
             <tr><td><code>/skillify</code></td><td>Meta-skill: do work → extract pattern → new permanent command. Skills build skills.</td><td>Manual skill authoring → auto</td></tr>
             <tr><td><code>/context-load</code></td><td>Cross-project context restore: load state from another project into current session</td><td>Context switching → instant</td></tr>
-            <tr><td><code>/pr-review</code></td><td>PR review against SF architecture and security standards</td><td>Manual checklist → automated</td></tr>
         </tbody>
     </table>
+    </div>
 
-    <!-- KNOWLEDGE GRAPH -->
-    <h2>Knowledge Graph</h2>
-    <p class="section-intro">A local SQLite graph that grows automatically from your work. No external infrastructure — just Python + SQLite, works offline.</p>
+    <div class="keep">
+    <h3>Code &amp; Architecture (2)</h3>
+    <table>
+        <thead><tr><th>Command</th><th>What It Does</th><th>Time Saved</th></tr></thead>
+        <tbody>
+            <tr><td><code>/pr-review</code></td><td>PR review against SF architecture and security standards</td><td>Manual checklist → automated</td></tr>
+            <tr><td><code>/gas-deploy</code></td><td>Apps Script push + deploy + verify, so a <code>clasp push</code> never silently skips the web app</td><td>Prevents the push-only gotcha</td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <!-- BUILD ON AGENTFORCE -->
+    <div class="keep">
+    <h2>Build on Agentforce</h2>
+    <p class="section-intro"><code>BUILD-SPEC.md</code> takes one governed employee agent through 11 build steps in a demo org, and the gate that can fail is the held-out eval at step 7. Its control map gives all 14 controls a status as of release 264, with a source behind every row, and three of them are still beta while custody of the safety layer has no native equivalent yet. I ran the reference agent end to end in my demo org on 2026-09-29, where the Apex tests passed 9/9, <code>sf agent validate</code> came back with zero errors, and the held-out eval scored 4/4 cases and 12/12 assertions. On the poisoned account it answered "The description field contains unverified content that I am disregarding" and still cited the record.</p>
     <table>
         <thead><tr><th>Component</th><th>What It Does</th><th>How It Helps</th></tr></thead>
         <tbody>
-            <tr><td><code>graph-auto-index.py</code> hook</td><td>Every Write/Edit indexes entities, computes relationship edges</td><td>Graph builds itself — zero maintenance</td></tr>
-            <tr><td><code>/graph-query</code> skill</td><td>Query relationships, find connections, discover related files</td><td>Surface context you didn't know existed</td></tr>
-            <tr><td><code>wiki/entities/</code></td><td>Company, product, concept pages indexed by the graph</td><td>Structured knowledge for traversal</td></tr>
-            <tr><td><code>wiki/people/</code></td><td>Person pages with org trees and interaction timelines</td><td>Relationship intelligence that compounds</td></tr>
+            <tr><td><code>BUILD-SPEC.md</code></td><td>11-step build of a governed employee agent on GA primitives, a 14-row control map with each control's status as of release 264, from GA to beta to the one gap with no native equivalent yet, sources for every row, and a proof check on every build step (tests, validation, seed data, the eval, tracing)</td><td>You can reproduce the Context Engineering series' Part 10 agent instead of just reading about it</td></tr>
+            <tr><td><code>reference-agent/</code></td><td>The working source: an Agent Script agent (a router + 4 subagents), two Apex actions (<code>with sharing</code>, user mode, bulk-safe) with 9 tests, a permission set, seed data with a planted injection, and a 4-case held-out eval</td><td>Start from code that passed end to end on 2026-09-29, not from a blank org</td></tr>
         </tbody>
     </table>
     <div class="highlight">
-        <p><strong>How it compounds:</strong> Write about a deal. The hook indexes the account, people, and products mentioned. Next time you prep for that account, the graph surfaces related wiki pages, other deals with the same people, and memory files you'd forgotten. The more you write, the smarter retrieval gets.</p>
+        <p><strong>In Part 10 the first held-out run failed one case.</strong> The agent refused the planted injection but still repeated the hostile text back in its summary, so I put the fix in the data boundary (<code>sanitizeDescription</code> in the Apex action) instead of the prompt and re-ran the same eval, which came back green.</p>
+    </div>
+    </div>
+
+    <!-- VOICE ENGINE AND REVIEW SCRIPTS -->
+    <div class="section">
+    <h2>Voice Engine and Review Scripts</h2>
+    <p class="section-intro">This is the engine <code>voice-tell-gate.py</code> runs on the docs Claude writes (any .md, .html, or .txt of 100+ words), along with the eval that tells you whether a change to the guard helped and the scripts behind <code>/review</code>. It ships generic, so every score carries a "generic-only" label until you calibrate it to your own writing with <code>VOICE-ONBOARDING.md</code>.</p>
+    <table>
+        <thead><tr><th>Component</th><th>What It Does</th><th>How It Helps</th></tr></thead>
+        <tbody>
+            <tr><td><code>tools/aiscore.mjs</code> + <code>tools/avoid-ai-writing/</code></td><td>0–100 AI score from the vendored MIT detector, plus your personal overlay (<code>voice-overlay.mjs</code>, shipped blank) and cadence checks; <code>VOICE-SYSTEM.md</code> documents the pipeline</td><td>The engine <code>voice-tell-gate.py</code> runs on each written doc of 100+ words</td></tr>
+            <tr><td><code>tools/voice-setup.mjs</code></td><td>The calibration fuse: labels every result "generic-only" until you've calibrated it to you</td><td>A clean score never gets mistaken for "sounds like me"</td></tr>
+            <tr><td><code>harness-evolution/</code></td><td>Held-out eval harness (<code>harness-eval.mjs</code>) with a generic seed corpus you replace with your own writing</td><td>Prove a guard change is a real improvement: ADMIT or REJECT against a frozen baseline</td></tr>
+            <tr><td><code>tools/rag-quality/</code> + <code>tools/llm.mjs</code></td><td>ECHO error attribution over Claude Code workflow traces (runs as-is), one query-rewrite tool that runs once <code>llm.mjs</code> points at your model, and three method skeletons you aim at your own corpus</td><td>Find which agent or step broke a multi-agent run</td></tr>
+            <tr><td><code>scripts/llmgw-call.py</code></td><td>Calls any model on the Salesforce gateway, with aliases (haiku, sonnet, opus, sol, gemini, grok, and more) and <code>--list-models</code></td><td>Check what the gateway serves before you rely on a model; works with DevBar sign-in, no token copying</td></tr>
+            <tr><td><code>scripts/llmgw-review.py</code> + <code>scripts/review-prompts/</code></td><td>Sends a file to an OpenAI, Google, or xAI model with the adversarial or editorial prompt</td><td>The cross-vendor read behind <code>/review</code></td></tr>
+            <tr><td><code>scripts/check-cli.sh</code></td><td>Detects installed CLIs and recommends what to add</td><td>Setup runs it first and stops if a required CLI is missing</td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <!-- KNOWLEDGE GRAPH -->
+    <div class="keep">
+    <h2>Knowledge Graph (Opt-In)</h2>
+    <p class="section-intro">A local SQLite graph that grows from your work once you turn it on. Setup leaves the indexer off, so copy <code>hooks/scripts-optional/graph-auto-index.py</code> into <code>~/.claude/hooks/scripts/</code> and register it as a PostToolUse hook on <code>Write|Edit</code>. It's plain Python and SQLite, and it works offline.</p>
+    <table>
+        <thead><tr><th>Component</th><th>What It Does</th><th>How It Helps</th></tr></thead>
+        <tbody>
+            <tr><td><code>graph-auto-index.py</code> hook (opt-in)</td><td>Once registered, every Write/Edit indexes entities and computes relationship edges</td><td>The graph builds itself after you turn it on</td></tr>
+            <tr><td><code>/graph-query</code> skill</td><td>Query relationships, find connections, discover related files</td><td>Surface context you didn't know existed</td></tr>
+            <tr><td><code>wiki/entities/</code></td><td>Company, product, concept pages indexed by the graph</td><td>Structured knowledge for traversal</td></tr>
+            <tr><td><code>wiki/people/</code></td><td>Person pages with org trees and interaction timelines (internal and external templates included)</td><td>Relationship intelligence that compounds</td></tr>
+        </tbody>
+    </table>
+    <div class="highlight">
+        <p><strong>How it compounds:</strong> Write about a deal and the hook indexes the account, people, and products you mentioned. When you prep for that account later, <code>/graph-query</code> can pull up related wiki pages, other deals with the same people, and memory files you'd forgotten, as long as the indexer was on when you wrote them.</p>
+    </div>
     </div>
 
     <!-- PASSIVE INTELLIGENCE -->
-    <h2 class="page-break">Passive Intelligence (Crons) <span class="count-badge">6</span></h2>
-    <p class="section-intro">Your knowledge base grows while you sleep. These run on schedule without manual effort.</p>
+    <div class="keep">
+    <h2>Passive Intelligence (Crons) <span class="count-badge">5 scripts + manager</span></h2>
+    <p class="section-intro">Your knowledge base can grow overnight, but out of the box only one of these jobs is scheduled. The kit ships a single launchd plist, for <code>exa-scan.py</code> at 4:30 AM, so <code>manage.sh install</code> loads that one and warns about the hn and morning-digest plists it can't find. The other times in the table come from each script's own header, and to schedule one you copy the exa plist and change its <code>Label</code>, hour, and script path.</p>
     <table>
         <thead><tr><th>Script</th><th>Schedule</th><th>What It Does</th></tr></thead>
         <tbody>
-            <tr><td><code>exa-scan.py</code></td><td>Daily 4:30 AM</td><td>5-query web intelligence: accounts, competitors, SF product, trends, Claude ecosystem</td></tr>
-            <tr><td><code>hn-scan.py</code></td><td>Daily 4:45 AM</td><td>4-query Hacker News developer sentiment (free, no auth needed)</td></tr>
-            <tr><td><code>github-scan.py</code></td><td>Daily 4:45 AM</td><td>Trending AI repos + release monitoring on competitor frameworks</td></tr>
-            <tr><td><code>morning-digest.sh</code></td><td>Daily 5:30 AM</td><td>Synthesizes all raw intel into wiki/inbox.md via Claude</td></tr>
-            <tr><td><code>memory-decay-check.sh</code></td><td>Weekly (Sun)</td><td>Flags memory files unchanged >45 days — catches stale knowledge</td></tr>
-            <tr><td><code>manage.sh</code></td><td>Manual</td><td>Install / uninstall / status / test all crons with one command</td></tr>
+            <tr><td><code>exa-scan.py</code></td><td>Daily 4:30 AM (plist included)</td><td>5-query web intelligence: account news, competitor launches, SF product, industry trends, Claude and MCP</td></tr>
+            <tr><td><code>hn-scan.py</code></td><td>Daily 4:45 AM (no plist yet)</td><td>4-query Hacker News developer sentiment (free, no auth needed)</td></tr>
+            <tr><td><code>github-scan.py</code></td><td>Daily 4:45 AM (no plist yet)</td><td>Trending AI repos + release monitoring on 10 agent frameworks and SDKs</td></tr>
+            <tr><td><code>morning-digest.sh</code></td><td>Daily 5:00 AM (no plist yet)</td><td>Synthesizes the day's raw intel files into <code>~/.claude/wiki/inbox.md</code> with <code>claude -p</code></td></tr>
+            <tr><td><code>memory-decay-check.sh</code></td><td>Weekly, Sunday 6 AM (no plist yet)</td><td>Flags memory files unchanged &gt;45 days — catches stale knowledge</td></tr>
+            <tr><td><code>manage.sh</code></td><td>Manual</td><td>Install / uninstall / status / test / logs for the launchd agents</td></tr>
         </tbody>
     </table>
+    </div>
 
     <!-- WIKI -->
+    <div class="keep">
     <h2>Wiki Structure <span class="count-badge">7 directories</span></h2>
     <p class="section-intro">Pre-built directory structure. Ready to fill from Day 1.</p>
     <table>
-        <thead><tr><th>Directory</th><th>What Goes Here</th><th>How It Grows</th></tr></thead>
+        <thead><tr><th>Path</th><th>What Goes Here</th><th>How It Grows</th></tr></thead>
         <tbody>
             <tr><td><code>wiki/concepts/</code></td><td>Patterns, frameworks, competitive analysis</td><td>/ingest, /scan-intel, manual</td></tr>
             <tr><td><code>wiki/entities/</code></td><td>Companies, products, concepts (graph-indexed)</td><td>/account-prep, /engagement-playbook</td></tr>
@@ -192,36 +272,76 @@
             <tr><td><code>wiki/tools/</code></td><td>Tool docs and setup guides</td><td>/ingest when learning new tools</td></tr>
             <tr><td><code>wiki/events/</code></td><td>Conference notes, event summaries</td><td>/ingest after events</td></tr>
             <tr><td><code>wiki/insights/</code></td><td>Research findings, analytical work</td><td>/scan-intel ADOPT items</td></tr>
+            <tr><td><code>wiki/index.md</code></td><td>Master catalog Claude navigates by (template in <code>templates/wiki/</code>)</td><td>/ingest adds each new page; /wiki-lint checks it against the files</td></tr>
+            <tr><td><code>wiki/inbox.md</code></td><td>Staging area for overnight intel and captures</td><td>The morning digest prepends each day's intel</td></tr>
         </tbody>
     </table>
+    </div>
+
+    <!-- EXAMPLES -->
+    <div class="keep">
+    <h2>Examples <span class="count-badge">2 worked examples</span></h2>
+    <table>
+        <thead><tr><th>Path</th><th>What It Shows</th><th>Why It Matters</th></tr></thead>
+        <tbody>
+            <tr><td><code>examples/compound-loop/README.md</code></td><td>Full walkthrough: banned word mistake → memory → rule → hook → permanent prevention</td><td>Proves the compound effect is real, not theoretical</td></tr>
+            <tr><td><code>examples/compound-loop/feedback-anti-slop-example.md</code></td><td>What a real memory file looks like (with frontmatter)</td><td>Template for how corrections get stored</td></tr>
+            <tr><td><code>examples/compound-loop/guardrail-example.py</code></td><td>Simplified hook that catches banned words</td><td>Shows how hooks work in practice</td></tr>
+            <tr><td><code>examples/cross-vendor-loop/</code></td><td>The real files from the Part 9 cross-vendor build loop: spec, starter tests, Sonnet's v1, the OpenAI and Google audits (plus a note on Grok's timeout), the reconciliation that became the revised plan, four audit-derived failing tests, v1's red run, and the fixed v2</td><td>7 findings came down to 4 real bugs (two findings shared one root cause), 1 dismissal, and 1 spec-wording note, and each bug got a failing test before its fix. Both suites go green on plain Node, 5/5 and 4/4. It ran on my laptop with no Salesforce org involved</td></tr>
+        </tbody>
+    </table>
+    </div>
+
+    <!-- CONFIGURATION -->
+    <div class="section">
+    <h2>Configuration and Templates</h2>
+    <table>
+        <thead><tr><th>File</th><th>What It Does</th><th>How It Helps</th></tr></thead>
+        <tbody>
+            <tr><td><code>settings.json.REFERENCE-ONLY</code></td><td>Annotated Claude Code settings with hooks, permissions, env vars, and model config; the <code>//</code> comments make it invalid JSON as written</td><td>Reference for merging hooks by hand; don't copy it over your <code>settings.json</code>, which holds your LLMGW auth key</td></tr>
+            <tr><td><code>.mcp.json.REFERENCE-ONLY</code></td><td>Annotated MCP server entries: the public Salesforce Docs MCP and a placeholder for the internal SE Grounding endpoint (the file's own header names <code>~/.claude/.mcp.json</code>, which isn't one of the locations the Claude Code MCP docs list)</td><td>Reference for <code>claude mcp add --transport http</code> (user scope lands in <code>~/.claude.json</code>) or for a project <code>.mcp.json</code> at a repo root, with the <code>//</code> comments stripped</td></tr>
+            <tr><td><code>templates/CLAUDE.md</code></td><td>Identity template with routing table, role definition, essential standards</td><td>Claude knows who you are from session 1</td></tr>
+            <tr><td><code>QUICKSTART-PROMPT.md</code></td><td>Paste into Claude Code for interactive guided setup</td><td>Claude builds your personalized config by asking you 5 questions</td></tr>
+            <tr><td><code>VOICE-ONBOARDING.md</code></td><td>Six-step calibration of the voice guard to your own writing</td><td>Lifts the "generic-only" label once the guard knows your voice</td></tr>
+            <tr><td><code>templates/apps-script/</code> + <code>docs/apps-script-setup.md</code></td><td>Three starter Apps Script files (email merge, sheet data puller, slides from sheet) and the setup guide</td><td>Pairs with <code>/gas-deploy</code></td></tr>
+            <tr><td><code>templates/reports/</code></td><td>HTML report templates for the morning brief, a session report, and system health</td><td><code>/system-health</code> fills in its template</td></tr>
+            <tr><td><code>docs/</code></td><td>This inventory (HTML + PDF) and <code>SLIDES-FRAMEWORK.md</code>, a talk framework for presenting the kit</td><td>Hand-off material for your team</td></tr>
+        </tbody>
+    </table>
+    </div>
 
     <!-- COMPOUND EFFECT -->
+    <div class="keep">
     <h2>The Compound Effect</h2>
-    <p class="section-intro">No single component is transformative alone. The value is in how they interact:</p>
+    <p class="section-intro">Here's how the pieces feed each other over the first 60 days:</p>
     <div class="compound-flow">
 Day 1:&nbsp;&nbsp;You correct Claude → Memory file saved<br>
-Day 3:&nbsp;&nbsp;Same mistake class → Rule prevents it automatically<br>
-Day 7:&nbsp;&nbsp;Rule forgotten in long session → Hook enforces mechanically<br>
+Day 3:&nbsp;&nbsp;Same mistake class → Rule tells Claude to avoid it<br>
+Day 7:&nbsp;&nbsp;Rule forgotten in long session → Hook checks mechanically<br>
 Day 14: Hook catches a pattern → /skillify extracts it into a new command<br>
 Day 30: Overnight crons feed intel → Morning brief surfaces it<br>
-Day 60: Graph connects entities → Related context surfaces automatically
+Day 60: Graph (once you turn it on) connects entities → /graph-query surfaces related context
     </div>
     <div class="highlight">
-        <p><strong>Starting matters more than perfecting.</strong> A mediocre setup that runs for 60 days beats a perfect setup that runs for 1 day. Compound growth is the product. The kit gives you Day 5 — compound loops take over from there.</p>
+        <p><strong>Starting matters more than perfecting.</strong> A mediocre setup you use for 60 days will know more about your work than a perfect one you set up and leave alone, because what it knows comes from the corrections you store along the way. The kit hands you the memory, rules, and skills on the first day, and the loop only keeps going if you keep feeding it.</p>
+    </div>
     </div>
 
     <!-- SETUP -->
-    <h2>Setup (30 minutes)</h2>
+    <div class="keep">
+    <h2>Setup (30 Minutes)</h2>
     <table>
         <thead><tr><th>Step</th><th>What Happens</th><th>Time</th></tr></thead>
         <tbody>
-            <tr><td>1. Clone</td><td><code>git clone github.com/jtehrani84/claude-code-se-starter-kit</code></td><td>1 min</td></tr>
-            <tr><td>2. Run setup</td><td><code>./setup.sh</code> — copies templates, asks your role/OU, generates CLAUDE.md</td><td>5 min</td></tr>
-            <tr><td>3. Personalize</td><td>Edit CLAUDE.md with your projects, constraints, routing table</td><td>10 min</td></tr>
+            <tr><td>1. Clone</td><td><code>git clone https://github.com/jtehrani84/claude-code-se-starter-kit.git</code></td><td>1 min</td></tr>
+            <tr><td>2. Run setup</td><td><code>./setup.sh</code> checks your CLIs, copies rules, hooks, skills, the voice engine, the eval harness, and the review scripts into <code>~/.claude/</code> without overwriting yours, then wires six of the seven hooks it copied into <code>settings.json</code>, leaving <code>gcp-tvm-guardrail.py</code> off (install Claude Code via LLMGW first; that creates the file)</td><td>5 min</td></tr>
+            <tr><td>3. Personalize</td><td>Paste the line from <code>QUICKSTART-PROMPT.md</code> into Claude Code; it asks 5 questions and builds your CLAUDE.md</td><td>10 min</td></tr>
             <tr><td>4. Test</td><td>Open Claude Code, run <code>/account-prep [your account]</code></td><td>2 min</td></tr>
-            <tr><td>5. Activate crons</td><td><code>crons/manage.sh install</code> (optional — enables overnight intel)</td><td>2 min</td></tr>
+            <tr><td>5. Calibrate your voice</td><td>Follow <code>VOICE-ONBOARDING.md</code> with 20–40 samples of your own writing; <code>node ~/.claude/tools/voice-setup.mjs --check</code> reads CALIBRATED when you're done</td><td>Varies</td></tr>
+            <tr><td>6. Activate crons</td><td><code>crons/manage.sh install</code> (optional; schedules <code>exa-scan.py</code>, the one job with a plist)</td><td>2 min</td></tr>
         </tbody>
     </table>
+    </div>
 
     <p style="margin-top: 16pt; text-align: center; color: #94a3b8; font-size: 8pt;">
         Claude Code SE Starter Kit — github.com/jtehrani84/claude-code-se-starter-kit<br>

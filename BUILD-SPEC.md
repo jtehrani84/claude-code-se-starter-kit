@@ -2,7 +2,7 @@
 
 *The buildable companion to the Context Engineering series (Parts 1–10). The series explains why each
 control matters. This doc tells you what to build, in what order, and how to prove each piece works.
-Status as of **2026-09-29** (Salesforce release 264). GA and beta labels move every release, so re-check
+Status as of **2026-09-29** (Salesforce Winter ’27, release 264), with the Slack row re-checked on 2026-09-30. GA and beta labels move every release, so re-check
 the rows you depend on against the docs before you demo or quote them (recipe at the end).*
 
 ---
@@ -17,8 +17,8 @@ that sits a frozen, held-out eval that can fail, along with the way to fix what 
 involves editing the eval).
 
 Everything here is a native Salesforce primitive. There's no bolt-on harness in this build. The
-harness I wrote for Parts 1–9 was the proof of concept, run on local tools (Claude Code, OpenCode,
-MeshMesh, and Slackbot as the front door) so I could find out which controls actually matter. This spec
+harness I wrote for Parts 1–9 was the proof of concept, run on local tools (Claude Code and OpenCode, plus an observe-only MeshMesh adapter
+and a Slackbot MCP server that's built but not yet registered) so I could find out which controls actually matter. This spec
 is the platform version of that list. The portable, platform-agnostic harness code is deliberately
 **not** in this kit.
 
@@ -43,18 +43,18 @@ Each control the series taught, the GA primitive it maps to, and where it lives 
 | Control | Native primitive | Status (Sept 2026) | In the reference agent |
 |---|---|---|---|
 | Least authority | The agent's permission set: agent access, Apex class access, object + field permissions | GA | `permissionsets/Governed_Account_Assistant_User` |
-| Injection defense | Instructions that treat record text as data, plus sanitizing at the data boundary in Apex | GA | `.agent` instructions + `GetAccountSummary.sanitizeDescription` |
-| Egress / data leaving | Trusted URLs allowlist: an unapproved link in a response is replaced with `URL_Redacted` | GA, on by default | platform behavior, nothing to build |
+| Injection defense | Instructions that treat record text as data, plus sanitizing at the data boundary in Apex | Custom code on GA primitives, covers the tested injection patterns | `.agent` instructions + `GetAccountSummary.sanitizeDescription` |
+| Egress through links in responses | Trusted URLs allowlist: an unapproved link in a response is replaced with `URL_Redacted` | GA, on by default | platform behavior, nothing to build |
 | Human-gated action | `require_user_confirmation: True` on the action | GA | `log_account_note` in the `.agent` |
 | Evidence / grounding | Actions that return the source record, cited in the answer | GA | `GetAccountSummary` returns `source` |
 | The eval that can fail | Agentforce Testing Center suite, frozen before tuning | GA | `tests/…-heldout.yaml` |
-| Swap the model | `model_config` per agent, router, or subagent; Bring Your Own LLM for other providers | GA | step 8 (optional) |
+| Swap the model | `model_config` per agent, router, or subagent; Bring Your Own LLM for other providers, called from a custom action | GA | step 8 (optional) |
 | Observability / the record | Session Tracing on Data 360 + the Trust Layer audit trail | GA (OTel export beta) | step 9 |
-| Orchestrate + delegate | Multi-Agent Orchestration (connected subagents, one org) | GA | step 11 |
-| Tools beyond Flow/Apex | MCP for Agentforce (register servers, allowlist tools) + Agentforce Gateway policies | Available since May 2026 | step 11 |
-| A judge from another lab | Testing Center custom scorers, where you choose the judge model | **Beta** | step 11 |
+| Orchestrate + delegate | Multi-Agent Orchestration (connected subagents, one org) | GA | not built here (see step 11) |
+| Tools beyond Flow/Apex | MCP for Agentforce (register servers, allowlist tools) + Agentforce Gateway policies | Available since May 2026 | not built here (see step 11) |
+| A judge from another lab | Testing Center custom scorers, where you choose the judge model | **Beta** | not built here (see step 11) |
 | Autonomous improvement | Agent Optimizer (spots failure patterns, suggests fixes) | **Beta** | not built here |
-| The Slack front door | Slackbot MCP client | **Beta, announced "coming soon"** | not built here |
+| The Slack front door | Slackbot MCP client: an MCP server added to a Slack app, whose tools Slackbot can call | Available on all plans (Slack help center, checked 2026-09-30) | not built here |
 | Custody of the safety layer | No native equivalent yet | Gap | not built here |
 
 Sources for every row are in [§7](#7-sources).
@@ -81,7 +81,7 @@ The tests cover the grounded hit, no match, null input, the injection sanitizer,
 150-request bulk calls that assert exactly one query and one DML.)
 
 > A check-only deploy (`--dry-run`) compiles the classes but, in my run, **executed zero tests** even with
-> `--test-level RunSpecifiedTests`. Don't read a green dry-run as passing tests. Run them for real.
+> `--test-level RunSpecifiedTests --tests GetAccountSummaryTest --tests LogAccountNoteTest`. Don't read a green dry-run as passing tests. Run them for real.
 
 ### Step 2: Author the Agent
 
@@ -103,6 +103,8 @@ sf agent validate authoring-bundle --json -o demo --api-name Part10_Governed_Acc
 
 ### Step 3: Preview with Live Actions, and Read the Trace
 
+On a fresh org, run the seed script from Step 6 first (`sf apex run -o demo --file scripts/apex/seed-demo-accounts.apex`). The preview below asks about Northwind Traders (demo), and that script is what creates it. It upserts by name, so running it again in Step 6 is harmless.
+
 ```bash
 sf agent preview start --json -o demo --use-live-actions --authoring-bundle Part10_Governed_Account_Assistant
 sf agent preview send  --json -o demo --authoring-bundle Part10_Governed_Account_Assistant \
@@ -114,6 +116,9 @@ sf agent preview end   --json -o demo --authoring-bundle Part10_Governed_Account
 action output, which will send you debugging the wrong layer. Then read the trace under
 `.sfdx/agents/…/traces/` and confirm the right subagent ran and `get_account_summary` was called.
 
+**Proof:** the trace lists `get_account_summary` as an action that ran, and the reply's fields match
+`sf data query -o demo -q "SELECT Name, Industry, Description FROM Account WHERE Name = 'Northwind Traders (demo)'"`.
+
 ### Step 4: Publish and Activate
 
 ```bash
@@ -121,7 +126,10 @@ sf agent publish authoring-bundle --json -o demo --api-name Part10_Governed_Acco
 sf agent activate --json -o demo --api-name Part10_Governed_Account_Assistant
 ```
 
-Every publish creates a new permanent version, so get the preview passing first and publish once.
+Every publish creates a new agent version. You can delete an inactive version later in Agentforce Builder, but not the active one, so get the preview passing first and publish only when it does.
+
+**Proof:** `sf agent preview start --json -o demo --api-name Part10_Governed_Account_Assistant` opens a
+session against the published agent (`--api-name`, not `--authoring-bundle`).
 
 ### Step 5: Grant Access (After Publishing, Because It References the Agent)
 
@@ -131,13 +139,15 @@ sf org assign permset -o demo --name Governed_Account_Assistant_User --on-behalf
 ```
 
 The permission set gives the user three things: access to this agent (`agentAccesses`), access to both
-Apex actions, and read on Account plus edit on Account Description. Salesforce also requires Contact read
-alongside Account read, so that's in there too, read-only.
+Apex actions, and read on Account plus edit on Account Description. My orgs have Person Accounts turned on, and
+there Salesforce rejects the deploy unless Contact read comes with Account read, so that's in there too, read-only.
 
 **Why this step exists:** in my own demo org the actions worked with no permission set at all, because I
-was running as a system administrator. A normal user can get empty or failed actions until this is
-assigned. If an action ever returns wrong or empty output, **check this permission set first**, before
-you touch the agent's instructions.
+was running as a system administrator, and I haven't tested what a normal user sees without it. If an
+action ever returns wrong or empty output, **check this permission set first**, before you touch the
+agent's instructions.
+
+**Proof:** `sf data query -o demo -q "SELECT Assignee.Username FROM PermissionSetAssignment WHERE PermissionSet.Name = 'Governed_Account_Assistant_User'"` lists the user you assigned.
 
 ### Step 6: Seed the Test Data, Including the Poisoned Record
 
@@ -166,10 +176,11 @@ pass.** When it fails, fix the agent or the data boundary instead.
 That's exactly what happened in Part 10. The first run failed one case: the agent refused the injection
 but still repeated the hostile text back in its summary. I fixed it at the data boundary instead of in the
 prompt: `sanitizeDescription` in `GetAccountSummary` withholds instruction-like text before it ever reaches
-the model. Same eval, re-run, green.
+the model. Same eval, re-run, green. One of the four cases shaped that fix, so the green re-run is a regression
+check rather than a fresh held-out result, and a case the fix never saw would be the stronger test.
 
-**Proof:** all four cases pass on topic, action, and outcome (12 of 12 assertions on 2026-09-29). On the
-write request the agent calls no action at all. It asks for confirmation first, which is the gate working.
+**Proof:** all four cases pass on topic, action, and outcome (12 of 12 assertions on 2026-09-29, and again on 2026-09-30 after a one-line prompt edit made version 3). On the
+write request the agent calls no action at all. It asks for confirmation first, which is what the eval checks. That ask comes from the agent's instructions, since the run never invoked the action and so never reached the platform's own confirmation step. The write that follows a yes is covered by the Apex tests.
 Keep the run ID.
 
 ### Step 8 (Optional): Pick the Model per Subagent
@@ -188,9 +199,9 @@ GPT 4.1 (`sfdc_ai__DefaultGPT41`), Claude Haiku 4.5 (`sfdc_ai__DefaultBedrockAnt
 Gemini 3.5 Flash (`sfdc_ai__DefaultVertexAIGemini35Flash`) because they've been tested most with agents.
 To run a model from your own provider account, connect it through Bring Your Own LLM in AI Models
 (Amazon Bedrock, Azure OpenAI, OpenAI, Vertex AI, or anything behind the LLM Open Connector). The
-developer docs say a BYOLLM request still runs through the Trust Layer.
+developer docs say a BYOLLM request still runs through the Trust Layer. Setup's model page adds that Agentforce itself is limited to a few model options, and that a custom action (a prompt template, Apex, or the Models API) can reference any Salesforce-managed or BYO model, so a BYO model belongs in an action.
 
-**Proof:** re-run step 7 on the new version. A model change is a new version and has to earn its way
+**Proof:** validate (step 2), publish and activate (step 4), then re-run step 7. The eval tests the latest active version, so an edit you haven't published never gets graded. A model change is a new version and has to earn its way
 through the same held-out eval. Use the cheaper model only where the eval stays green.
 
 ### Step 9: Turn On the Record
@@ -204,11 +215,16 @@ scores beside it.
 **Proof:** after a preview session, query the session in Data 360 and find your `get_account_summary`
 step in it.
 
-### Step 10: Confirm Egress Is Already Covered
+### Step 10: Confirm Link Egress Is Already Covered
 
 The platform enforces a trusted-URL allowlist on agent responses: an unapproved link is replaced with
 `URL_Redacted`, by default. In Part 10 it fired on its own when the poisoned record's link tried to reach
-the user. Nothing to build. Just don't add the attacker's domain to your Trusted URLs.
+the user. Nothing to build. Just don't add the attacker's domain to your Trusted URLs. It only covers links in responses, though. Data leaving through an action is a job for the permission set and the confirmation gate.
+
+**Proof:** in a preview session, ask what the notes on the ACME record say. The reply never contains
+`evil-exfil.example.com`. On 2026-09-30 the agent called the field unverified content and didn't repeat
+the link at all, so `URL_Redacted` never showed up. The allowlist is the backstop for a run where the
+model does emit the link.
 
 ### Step 11: Where to Go Next
 
@@ -241,15 +257,19 @@ This is how I build with the kit. It's the same loop the series ran in Part 9, s
 5. **Sonnet fixes only what's proven**, and both suites go green. Re-run them yourself instead of taking
    the subagent's word for it.
 
+The artifacts from that Part 9 run (the spec, both audits, the reconciliation that became the revised plan, the four audit-derived tests, and both versions of the code) are in [`examples/cross-vendor-loop/`](examples/cross-vendor-loop/), and you can re-run both suites there yourself.
+
 ## 5. What This Build Doesn't Cover
 
 The code loop in section 4 has only run on my laptop. On the platform it would be Multi-Agent
 Orchestration, a subagent pinned to another provider, and a custom-scorer judge, and I've checked that
 mapping against the docs without running it end to end in an org yet.
 
-Nothing here depends on the Slack front door, which matters because Slack has only announced the Slackbot
-MCP client as a coming beta. Custody is the other open one. Nothing on the platform yet lets an owner hold
-a cryptographic trust root over the guardrails themselves, though permissions and approvals get close.
+This build doesn't depend on the Slack front door. Slack's help center now lists the Slackbot MCP client
+as available on all plans: a developer adds an MCP server to a Slack app, and once it's installed,
+Slackbot can call that server's tools. Wiring this agent into Slackbot is the next build, and this spec
+doesn't cover it yet. The other open row is custody, since no platform feature lets an owner hold a
+cryptographic trust root over the guardrails themselves yet, though permissions and approvals get close.
 
 And this is one agent in a demo org. It shows the controls are real, native, and compose, which is a long
 way from showing them at a customer's scale.
@@ -280,4 +300,4 @@ Salesforce and Slack documentation, checked 2026-09-29 (release 264):
 - Agentforce Gateway policies: *Agentforce Gateway* (`ai.agentforce_gateway_policies`)
 - Agent Optimizer (beta): *Improve Agent Performance with Agent Optimizer (Beta)*
 - Agent Fabric: *MuleSoft Agent Fabric – Deep Dive*, architect.salesforce.com
-- Slackbot MCP client: Slack, *Slack is where your team works. Now it's where your agents work too.*, slack.com/blog/news/slack-is-where-agents-work (availability: "coming soon," beta)
+- Slackbot MCP client: Slack Help Center, *Connect Slackbot to other apps with MCP*, slack.com/help/articles/52414744085139 ("Available on all plans"; server and read-only/write tool controls for admins on Enterprise Grid and Enterprise+), and docs.slack.dev/ai/slackbot-mcp-client for adding a server to your app. Checked 2026-09-30.

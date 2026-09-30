@@ -13,11 +13,11 @@ This kit gives you the persistent context architecture that took 60 days of tria
 | **Voice system** | Generic AI-slop engine (vendored MIT detector) + your calibrated overlay + a setup **fuse** + a `/voice-judge` gestalt read | Catches slop, protects *your* voice, and fails closed until you calibrate it to you |
 | **Evolve-and-gate eval** | `harness-eval` scores your guard on a held-out split | Prove a guard change is a real improvement, not a metric you gamed |
 | **Method toolkit** | ECHO error attribution + RAG-quality tools (VERA / Meta-Knowledge) | Attribute multi-agent failures; measure and improve retrieval |
-| **Hooks** | session-init, guardrail, product-verification, output-quality, **voice-tell-gate** | Context routes itself; slop and unproven claims get flagged |
+| **Hooks** | session-init, guardrail, product-verification, soql-schema-check, output-quality, **voice-tell-gate** | Context routes itself, destructive commands and bad SOQL get stopped, and slop gets flagged |
 | **Skills** | 20+ SE workflows incl. `/voice-judge`, `/voice-check`, `/validate` | From meeting prep to content quality to meta-skills |
 | **Wiki** | Starter knowledge base + method pages | Architecture decisions, people, and the method notes behind the tools |
 | **Crons** | Intelligence automation pipeline | Overnight scanning → morning digest |
-| **Examples** | Compound loop + the honest-ceiling voice pilot | See a mistake become a permanent fix — and where the guard breaks |
+| **Examples** | Compound loop and the [cross-vendor build loop](examples/cross-vendor-loop/) from the demo video (the real spec, audits, and revised plan) | See a mistake become a permanent fix, and how another lab's audit turns into failing tests |
 | **Agentforce build spec** | [`BUILD-SPEC.md`](BUILD-SPEC.md) + a working [`reference-agent/`](reference-agent/) | Build a governed Agentforce agent on GA primitives, step by step, with a proof for every step |
 | **Cross-vendor review** | `/review` + `scripts/llmgw-review.py` route a draft to OpenAI, Google, or xAI models | A different lab checks your work, so Claude never grades Claude |
 
@@ -116,19 +116,20 @@ Claude will scaffold everything interactively.
 | `/morning-brief` | Daily context load: overnight intel, yesterday's work, today's focus, suggested actions |
 | `/gas-deploy` | Apps Script deploy: push + deploy + verify, prevents the clasp push-only gotcha |
 
-## Hooks (6 Wired by Setup, 1 Opt-In)
+## Hooks (6 Wired by Setup, 2 Opt-In)
 
 | Hook | Type | What It Does |
 |------|------|-------------|
 | `session-init.py` | SessionStart | Routes context based on working directory and git branch |
-| `guardrail.py` | PreToolUse (Bash) | Blocks dangerous commands: force-push, --set-env-vars, rm -rf, secrets |
+| `guardrail.py` | PreToolUse (Bash) | Denies force-push to main, `--set-env-vars`, and `rm -rf` on `/`, `~`, or `.`; asks you to confirm `git reset --hard` |
 | `product-verification.py` | PreToolUse (Edit/Write) | Flags hallucinated Salesforce product names before they reach output |
 | `soql-schema-check.py` | PreToolUse (Bash) | Checks sObject and field names in `sf data query` against the org's describe before the query runs, and blocks with a "did you mean?" |
 | `output-quality-gate.py` | PostToolUse (Write) | Lightweight fallback: scans written content for AI-slop words |
 | `voice-tell-gate.py` | PostToolUse (Write) | Runs the full voice engine (score + overlay + cadence) on written .md/.html and nudges; carries the fuse's "not calibrated to you" note until you onboard |
 | `gcp-tvm-guardrail.py` | PreToolUse (Bash), **opt-in** | GCP security-compliance checks before deploys. Only useful if you deploy to GCP, so setup doesn't wire it (see `settings.json.REFERENCE-ONLY`) |
+| `graph-auto-index.py` | PostToolUse (Write/Edit), **opt-in** | Indexes what you write into the local knowledge graph. Ships in `hooks/scripts-optional/`, so setup never installs it |
 
-Already installed an older version? Pull the repo and re-run `./setup.sh`. It adds the new hooks and files without duplicating the old ones or overwriting anything you've customized.
+Already installed an older version? Pull the repo and re-run `./setup.sh`. It adds the new hooks and files without duplicating the old ones or overwriting anything you've customized. Re-running matters this time: hooks from before 2026-09-30 printed `{"result": "block"}`, which Claude Code doesn't read, so the guardrail never actually stopped anything. Setup replaces any hook you haven't edited with the fixed version and tells you about any you have.
 
 ## Building on Agentforce
 

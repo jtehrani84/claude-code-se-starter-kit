@@ -169,21 +169,32 @@ def validate_fields(fields: List[str], describe_result: Dict) -> List[Dict]:
 
 
 def format_allow():
-    """Return ALLOW response (simple format for cross-version compatibility)."""
-    return {"result": "continue"}
+    """No decision: the normal permission flow applies."""
+    return {}
 
 
 def format_block(reason: str, context: str = ""):
-    """Return BLOCK response with reason (simple format for cross-version compatibility)."""
+    """Deny the tool call; Claude sees the reason."""
     message = reason
     if context:
         message = f"{reason} | {context}"
-    return {"result": "block", "reason": message}
+    return {
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "deny",
+            "permissionDecisionReason": message,
+        }
+    }
 
 
 def format_allow_with_context(context: str):
-    """Return ALLOW with warning context (simple format for cross-version compatibility)."""
-    return {"result": "continue", "warning": context}
+    """No decision, plus a note Claude sees next to the tool result."""
+    return {
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "additionalContext": context,
+        }
+    }
 
 
 def sf_cli_available():

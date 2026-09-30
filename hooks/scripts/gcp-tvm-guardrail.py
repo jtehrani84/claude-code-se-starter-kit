@@ -144,7 +144,14 @@ def main():
     lines.append("  Reference: wiki/concepts/gcp-security-compliance.md")
     lines.append("  SLA: P1 = 30 days. Violations trigger daily TVM alerts.")
 
-    print("\n".join(lines))
+    # Plain stdout on PreToolUse only reaches the debug log, so hand it to Claude
+    # as additionalContext. Warn, don't block: some matches are advisory.
+    print(json.dumps({
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "additionalContext": "\n".join(lines),
+        }
+    }))
     sys.exit(0)
 
 
