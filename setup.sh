@@ -164,6 +164,9 @@ if [[ "${1:-}" == "--uninstall" ]]; then
             target="$CLAUDE_DIR/$rel"
             if [[ -f "$target" ]] && cmp -s "$src" "$target"; then
                 FILES_TO_REMOVE+=("$target")
+            elif [[ -f "$target" ]] && [[ -f "$SCRIPT_DIR/install-prior-hashes.txt" ]] && \
+                 grep -qx "$rel $(python3 -c 'import hashlib,sys; print(hashlib.sha256(open(sys.argv[1],"rb").read()).hexdigest())' "$target")" "$SCRIPT_DIR/install-prior-hashes.txt"; then
+                FILES_TO_REMOVE+=("$target")
             fi
         done < <(find "$SCRIPT_DIR/$tree" -type f -print0)
     done
@@ -303,14 +306,23 @@ echo ""
 echo -e "${GREEN}[5/7]${NC} Installing the voice engine, eval harness, and review scripts..."
 
 # tools/ = voice engine; harness-evolution/ = eval harness; the llmgw scripts + prompts back /review.
+# An installed file that matches an earlier kit version (install-prior-hashes.txt) is upgraded in
+# place; one you edited is kept.
+PRIOR_TREE_HASHES="$SCRIPT_DIR/install-prior-hashes.txt"
 for tree in tools harness-evolution scripts/llmgw-call.py scripts/llmgw-review.py scripts/review-prompts; do
     [[ -e "$SCRIPT_DIR/$tree" ]] || continue
-    installed=0; skipped=0
+    installed=0; upgraded=0; current=0; kept=0
     while IFS= read -r -d '' src; do
         rel="${src#"$SCRIPT_DIR"/}"
         dest="$CLAUDE_DIR/$rel"
-        if [[ -f "$dest" ]]; then
-            skipped=$((skipped + 1))
+        if [[ -f "$dest" ]] && cmp -s "$src" "$dest"; then
+            current=$((current + 1))
+        elif [[ -f "$dest" ]] && [[ -f "$PRIOR_TREE_HASHES" ]] && grep -qx "$rel $(sha256_of "$dest")" "$PRIOR_TREE_HASHES"; then
+            # an unedited copy of an earlier kit version: safe to upgrade in place
+            [[ "$DRY_RUN" == false ]] && cp "$src" "$dest"
+            upgraded=$((upgraded + 1))
+        elif [[ -f "$dest" ]]; then
+            kept=$((kept + 1))
         else
             if [[ "$DRY_RUN" == false ]]; then
                 mkdir -p "$(dirname "$dest")"
@@ -319,7 +331,7 @@ for tree in tools harness-evolution scripts/llmgw-call.py scripts/llmgw-review.p
             installed=$((installed + 1))
         fi
     done < <(find "$SCRIPT_DIR/$tree" -type f -print0)
-    echo "  ✓ $tree: $installed installed, $skipped already present (kept yours)"
+    echo "  ✓ $tree: $installed installed, $upgraded upgraded, $current already current, $kept kept yours (edited)"
 done
 echo ""
 

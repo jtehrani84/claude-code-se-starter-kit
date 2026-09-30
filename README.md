@@ -129,7 +129,7 @@ Claude will scaffold everything interactively.
 | `gcp-tvm-guardrail.py` | PreToolUse (Bash), **opt-in** | GCP security-compliance checks before deploys. Only useful if you deploy to GCP, so setup doesn't wire it (see `settings.json.REFERENCE-ONLY`) |
 | `graph-auto-index.py` | PostToolUse (Write/Edit), **opt-in** | Indexes what you write into the local knowledge graph. Ships in `hooks/scripts-optional/`, so setup never installs it |
 
-Already installed an older version? Pull the repo and re-run `./setup.sh`. It adds the new hooks and files without duplicating the old ones or overwriting anything you've customized. Re-running matters this time: hooks from before 2026-09-30 printed `{"result": "block"}`, which Claude Code doesn't read, so the guardrail never actually stopped anything. Setup replaces any hook you haven't edited with the fixed version and tells you about any you have.
+Already installed an older version? Pull the repo and re-run `./setup.sh`. It adds the new hooks and files without duplicating the old ones or overwriting anything you've customized. Re-running matters this time: hooks from before 2026-09-30 printed `{"result": "block"}`, which Claude Code doesn't read, so the guardrail never actually stopped anything. Setup replaces any hook you haven't edited with the fixed version and tells you about any you have. The same goes for the voice engine and the `/review` scripts, which now give Grok enough room to finish thinking and fail loudly instead of returning a blank review.
 
 ## Building on Agentforce
 
