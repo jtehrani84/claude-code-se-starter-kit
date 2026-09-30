@@ -77,7 +77,10 @@ def call_llmgw(model_id, system_prompt, user_content, api_key):
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_content},
         ],
-        "max_tokens": 4096,
+        # Reasoning models spend part of the budget thinking before they answer. Grok needs the most:
+        # on a 21 KB document it used ~12K thinking tokens (measured 2026-09-30), and the gateway
+        # rejects every param that would cap it.
+        "max_tokens": 32000 if model_id.startswith("grok") else 16000,
     }
     # Reasoning models (GPT-5.x, Grok) reject or ignore a custom temperature.
     if not model_id.startswith(("gpt-5", "grok", "claude-opus-4-7")):
@@ -89,11 +92,14 @@ def call_llmgw(model_id, system_prompt, user_content, api_key):
     req.add_header("Content-Type", "application/json")
 
     try:
-        resp = urllib.request.urlopen(req, timeout=120)
+        resp = urllib.request.urlopen(req, timeout=600)
         result = json.loads(resp.read())
-        content = result["choices"][0]["message"].get("content") or ""
+        choice = result["choices"][0]
+        content = choice["message"].get("content") or ""
         if not content.strip():
-            print(f"ERROR: {model_id} returned an empty answer (thinking models can spend the whole budget). "
+            why = (f"it hit max_tokens={payload['max_tokens']} while thinking" if choice.get("finish_reason") == "length"
+                   else f"finish reason: {choice.get('finish_reason')}")
+            print(f"ERROR: {model_id} returned an empty answer ({why}). "
                   "Retry, or pick another reviewer with --model.", file=sys.stderr)
             sys.exit(1)
         return content

@@ -70,6 +70,10 @@ ALL_MODELS = ANTHROPIC_MODELS | {
     "grok-4.6",
 }
 
+# Minimum output budget per model. Grok spends most of it thinking on long input (measured
+# 2026-09-30: ~12K thinking tokens, then an ~8K-character answer, 146s, on a 21 KB document).
+MIN_MAX_TOKENS = {"grok-4.6": 32000}
+
 # Model aliases for convenience
 ALIASES = {
     "haiku": "claude-haiku-4-5-20251001",
@@ -87,11 +91,17 @@ ALIASES = {
 }
 
 
-def call_model(model: str, prompt: str, system: str = "", max_tokens: int = 4096) -> dict:
+def call_model(model: str, prompt: str, system: str = "", max_tokens: int = 4096, timeout: int = 600) -> dict:
     """Call any model via LLMGW Messages API."""
     resolved = ALIASES.get(model, model)
     if resolved not in ALL_MODELS:
         return {"error": f"Unknown model: {resolved}. Use --list-models to see available."}
+    # Grok thinks before it answers, and the gateway has no way to cap that (it rejects thinking and
+    # reasoning_effort params). On a long document it can spend 12K+ tokens thinking, so a smaller
+    # budget comes back with no answer at all. It stops early on short prompts, so the floor is cheap.
+    floor = MIN_MAX_TOKENS.get(resolved, 0)
+    if max_tokens < floor:
+        max_tokens = floor
 
     messages = [{"role": "user", "content": prompt}]
 
@@ -117,13 +127,16 @@ def call_model(model: str, prompt: str, system: str = "", max_tokens: int = 4096
     )
 
     try:
-        with urllib.request.urlopen(req, timeout=120) as resp:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
             data = json.loads(resp.read())
     except urllib.error.HTTPError as e:
         error_body = e.read().decode() if e.fp else str(e)
         return {"error": f"HTTP {e.code}: {error_body}", "model": resolved}
     except Exception as e:
-        return {"error": str(e), "model": resolved}
+        msg = str(e)
+        if "timed out" in msg:
+            msg += f" (no reply within {timeout}s; thinking models can take minutes on long input, raise --timeout)"
+        return {"error": msg, "model": resolved}
 
     # Normalize response across API formats
     if "content" in data:
@@ -139,6 +152,11 @@ def call_model(model: str, prompt: str, system: str = "", max_tokens: int = 4096
         text = json.dumps(data)
         usage = {}
 
+    stop = data.get("stop_reason") or (data.get("choices") or [{}])[0].get("finish_reason")
+    if not text.strip():
+        why = f"it hit max_tokens={max_tokens} while thinking; raise --max-tokens" if stop in ("max_tokens", "length") else f"stop reason: {stop}"
+        return {"error": f"{resolved} returned an empty answer ({why})", "model": resolved, "usage": usage}
+
     return {
         "model": resolved,
         "content": text,
@@ -153,6 +171,7 @@ def main():
     parser.add_argument("--system", "-s", default="", help="System prompt")
     parser.add_argument("--file", "-f", help="File to include in prompt context")
     parser.add_argument("--max-tokens", type=int, default=4096)
+    parser.add_argument("--timeout", type=int, default=600, help="Seconds to wait for a reply (default 600)")
     parser.add_argument("--plain", action="store_true", help="Output text only, no JSON wrapper")
     parser.add_argument("--list-models", action="store_true", help="List available models")
     args = parser.parse_args()
@@ -194,10 +213,16 @@ def main():
             print(json.dumps({"error": f"File not found: {args.file}"}))
             sys.exit(1)
 
-    result = call_model(args.model, prompt, args.system, args.max_tokens)
+    result = call_model(args.model, prompt, args.system, args.max_tokens, args.timeout)
 
+    # An error must never look like an answer: it goes to stderr with a nonzero exit.
+    if "error" in result:
+        print(f"ERROR: {result['error']}", file=sys.stderr)
+        if not args.plain:
+            print(json.dumps(result, indent=2))
+        sys.exit(1)
     if args.plain:
-        print(result.get("content", result.get("error", "")))
+        print(result["content"])
     else:
         print(json.dumps(result, indent=2))
 
