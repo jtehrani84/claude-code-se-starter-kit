@@ -9,12 +9,17 @@ This kit gives you the persistent context architecture that took 60 days of tria
 | Layer | What | Impact |
 |-------|------|--------|
 | **Identity** | Template CLAUDE.md with routing table | Claude knows your role, projects, and constraints from session 1 |
-| **Rules** | 8 governance files (voice, security, architecture, platform, testing, LWC, agent script) | Standards enforced automatically — no re-explaining |
-| **Hooks** | 6 scripts (session-init, guardrail, product-verification, output-quality, SOQL-check, GCP-TVM) | Context routes itself; mistakes get blocked or flagged |
-| **Skills** | 24 SE-specific workflows | From meeting prep to content quality to meta-skills |
-| **Wiki** | Starter knowledge base with entity pages | Architecture decisions, people, reference docs — all organized |
-| **Crons** | Intelligence automation pipeline | Overnight Exa + HN scanning -> morning digest |
-| **Examples** | Compound loop walkthrough | See exactly how one mistake becomes a permanent fix |
+| **Rules** | 13 governance + epistemic rules — voice, security, architecture, platform, testing, LWC, agent-script, the **4 proof-family rules**, and **structural-voice** | Standards enforced automatically — and the harness stops confidently-wrong output |
+| **Voice system** | Generic AI-slop engine (vendored MIT detector) + your calibrated overlay + a setup **fuse** + a `/voice-judge` gestalt read | Catches slop, protects *your* voice, and fails closed until you calibrate it to you |
+| **Evolve-and-gate eval** | `harness-eval` scores your guard on a held-out split | Prove a guard change is a real improvement, not a metric you gamed |
+| **Method toolkit** | ECHO error attribution + RAG-quality tools (VERA / Meta-Knowledge) | Attribute multi-agent failures; measure and improve retrieval |
+| **Hooks** | session-init, guardrail, product-verification, output-quality, **voice-tell-gate** | Context routes itself; slop and unproven claims get flagged |
+| **Skills** | 20+ SE workflows incl. `/voice-judge`, `/voice-check`, `/validate` | From meeting prep to content quality to meta-skills |
+| **Wiki** | Starter knowledge base + method pages | Architecture decisions, people, and the method notes behind the tools |
+| **Crons** | Intelligence automation pipeline | Overnight scanning → morning digest |
+| **Examples** | Compound loop + the honest-ceiling voice pilot | See a mistake become a permanent fix — and where the guard breaks |
+| **Agentforce build spec** | [`BUILD-SPEC.md`](BUILD-SPEC.md) + a working [`reference-agent/`](reference-agent/) | Build a governed Agentforce agent on GA primitives, step by step, with a proof for every step |
+| **Cross-vendor review** | `/review` + `scripts/llmgw-review.py` route a draft to OpenAI, Google, or xAI models | A different lab checks your work, so Claude never grades Claude |
 
 ## Prerequisites (Do These FIRST)
 
@@ -106,18 +111,34 @@ Claude will scaffold everything interactively.
 | `/validate` | Cross-model quality gate: scores content 1-10 on 5 dimensions, verdicts SHIP/FIX/REWRITE |
 | `/voice-check` | Anti-slop scanner: finds all 50+ banned words/phrases with line numbers and replacements |
 | `/content-review` | 6-dimension reviewer: accuracy, voice, specificity, customer focus, actionability, credibility |
+| `/voice-judge` | Gestalt read (Layer 5): catches the AI tells regex can't, and can veto a clean score. CLEAN only if engine AND judge both pass |
 | `/weekly-report` | Status report from git log, memory files, and session activity |
 | `/morning-brief` | Daily context load: overnight intel, yesterday's work, today's focus, suggested actions |
 | `/gas-deploy` | Apps Script deploy: push + deploy + verify, prevents the clasp push-only gotcha |
 
-## Hooks (4 Scripts)
+## Hooks (6 Wired by Setup, 1 Opt-In)
 
 | Hook | Type | What It Does |
 |------|------|-------------|
 | `session-init.py` | SessionStart | Routes context based on working directory and git branch |
 | `guardrail.py` | PreToolUse (Bash) | Blocks dangerous commands: force-push, --set-env-vars, rm -rf, secrets |
 | `product-verification.py` | PreToolUse (Edit/Write) | Flags hallucinated Salesforce product names before they reach output |
-| `output-quality-gate.py` | PostToolUse (Write) | Scans written content for AI-slop words and reports violations |
+| `soql-schema-check.py` | PreToolUse (Bash) | Checks sObject and field names in `sf data query` against the org's describe before the query runs, and blocks with a "did you mean?" |
+| `output-quality-gate.py` | PostToolUse (Write) | Lightweight fallback: scans written content for AI-slop words |
+| `voice-tell-gate.py` | PostToolUse (Write) | Runs the full voice engine (score + overlay + cadence) on written .md/.html and nudges; carries the fuse's "not calibrated to you" note until you onboard |
+| `gcp-tvm-guardrail.py` | PreToolUse (Bash), **opt-in** | GCP security-compliance checks before deploys. Only useful if you deploy to GCP, so setup doesn't wire it (see `settings.json.REFERENCE-ONLY`) |
+
+Already installed an older version? Pull the repo and re-run `./setup.sh`. It adds the new hooks and files without duplicating the old ones or overwriting anything you've customized.
+
+## Building on Agentforce
+
+[`BUILD-SPEC.md`](BUILD-SPEC.md) is the buildable companion to the Context Engineering series. It walks one governed employee agent from an empty demo org to a passing held-out eval: least-authority permissions, injection treated as data, a human-confirmed write, grounded answers with citations, session tracing, and a model per subagent. Each step names the GA primitive, links the doc it came from, and ends with a command that proves it worked. The source is in [`reference-agent/`](reference-agent/), last verified end to end on 2026-09-29.
+
+## Models and the Cross-Vendor Check
+
+As of 2026-09-29 the Salesforce gateway serves Opus 5.5 and Sonnet 5.5. `settings.json.REFERENCE-ONLY` shows how to make Opus 5.5 your default and point the `sonnet` alias at 5.5. (In the VS Code extension, set a `[1m]` model through `claudeCode.environmentVariables`, because the `/model` picker can't confirm the suffix.)
+
+The pattern the series runs on: Opus plans and writes the spec, a Sonnet subagent builds, and **a model from a different lab reviews** with `/review`. Every finding has to become a failing test before it earns a fix. `scripts/llmgw-call.py --list-models` shows what the gateway serves today.
 
 ## The Compound Loop
 
@@ -144,7 +165,12 @@ See `examples/compound-loop/` for a complete walkthrough showing one real correc
 |       |-- session-init.py          # Context routing on start
 |       |-- guardrail.py             # PreToolUse: block dangerous commands
 |       |-- product-verification.py  # PreToolUse: catch hallucinated product names
-|       +-- output-quality-gate.py   # PostToolUse: scan for AI-slop in written files
+|       |-- soql-schema-check.py     # PreToolUse: check SOQL fields against the schema
+|       |-- output-quality-gate.py   # PostToolUse: scan for AI-slop in written files
+|       +-- voice-tell-gate.py       # PostToolUse: full voice engine on written .md/.html
+|-- tools/                           # Voice engine (aiscore.mjs + vendored MIT detector + your overlay)
+|-- harness-evolution/               # Held-out eval harness + your voice corpus
+|-- scripts/                         # llmgw-call.py, llmgw-review.py (+ review-prompts/) for /review
 |-- commands/                        # Custom /commands (skills)
 |   |-- account-prep.md
 |   |-- deal-strategy.md
@@ -263,17 +289,17 @@ These extend the base kit significantly. Install from Claude Code marketplace:
 | **hookify** | Generate hooks from conversation patterns — "never do X again" becomes code | Marketplace → hookify |
 | **session-report** | End-of-session summary with token usage and work done | Marketplace → session-report |
 
-## SE Grounding Service
+## SE Grounding (internal Salesforce only — NOT a kit dependency)
 
-Verified Salesforce product knowledge — 3,200+ FCD chunks with slide citations, competitive intel, field SE insights, and a 323-entity knowledge graph. One source of truth for every SE.
+If you're inside Salesforce, there's an internal SE Grounding service (verified FCD product knowledge, ZScaler + `@salesforce.com` gated). The kit does **not** depend on it, and its endpoint moves — ask in #solutions-ai-tooling for the current URL rather than trusting any placeholder below. Outside Salesforce, skip this section entirely.
 
-**URL:** `https://grounding.35-186-235-101.sslip.io`
-**Setup guide:** `https://grounding.35-186-235-101.sslip.io/setup`
+**URL:** `INTERNAL-SE-GROUNDING-ENDPOINT-ask-solutions-ai-tooling`
+**Setup guide:** `INTERNAL-SE-GROUNDING-ENDPOINT-ask-solutions-ai-tooling/setup`
 
 ### Browser Access (any SE)
 
 1. Connect to ZScaler VPN
-2. Go to `https://grounding.35-186-235-101.sslip.io`
+2. Go to `INTERNAL-SE-GROUNDING-ENDPOINT-ask-solutions-ai-tooling`
 3. Click "Sign in with Google"
 4. Use your `@salesforce.com` Google Workspace account
 5. Search — results include FCD slide citations
@@ -285,7 +311,7 @@ No approval needed, no API key, no setup. Non-salesforce.com accounts are reject
 1. ZScaler must be on
 2. Run:
 ```bash
-claude mcp add --transport http salesforce-grounding https://grounding.35-186-235-101.sslip.io/mcp
+claude mcp add --transport http salesforce-grounding INTERNAL-SE-GROUNDING-ENDPOINT-ask-solutions-ai-tooling/mcp
 ```
 Or add manually to `~/.claude/.mcp.json`:
 ```json
@@ -293,7 +319,7 @@ Or add manually to `~/.claude/.mcp.json`:
   "mcpServers": {
     "salesforce-grounding": {
       "type": "http",
-      "url": "https://grounding.35-186-235-101.sslip.io/mcp"
+      "url": "INTERNAL-SE-GROUNDING-ENDPOINT-ask-solutions-ai-tooling/mcp"
     }
   }
 }

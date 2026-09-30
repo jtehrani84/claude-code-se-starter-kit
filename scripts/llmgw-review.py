@@ -8,6 +8,8 @@ Requires ZScaler VPN active.
 import json
 import sys
 import os
+import shutil
+import subprocess
 import urllib.request
 import urllib.error
 from pathlib import Path
@@ -16,32 +18,47 @@ from pathlib import Path
 # ANTHROPIC_BEDROCK_BASE_URL includes /bedrock suffix — strip it for direct calls.
 # Fallback: LLMGW_BASE_URL if set explicitly.
 GATEWAY_BASE = os.environ.get("ANTHROPIC_BEDROCK_BASE_URL", "").replace("/bedrock", "") or os.environ.get("LLMGW_BASE_URL", "")
+# Reviewers are deliberately NOT Anthropic models: the point of the review is a second opinion from a
+# different lab than the one that drafted the work (a same-model judge grades its own house style too kindly).
+# Live-verified 2026-09-29 — the gateway catalog changes, so re-check with --list-models + a live call.
 MODELS = {
+    "sol": "gpt-5.6-sol",
+    "gpt-5.6": "gpt-5.6",
     "gpt-5.5": "gpt-5.5",
-    "gpt-5": "gpt-5",
     "gemini-3.1-pro": "gemini-3.1-pro-preview",
     "gemini-2.5-pro": "gemini-2.5-pro",
-    "gemini-flash": "gemini-3-flash-preview",
-    "codex": "gpt-5.3-codex",
+    "gemini-flash": "gemini-3.5-flash",
+    "grok": "grok-4.6",
 }
 DEFAULT_EDITORIAL = "gemini-3.1-pro-preview"
-DEFAULT_ADVERSARIAL = "gemini-3.1-pro-preview"  # GPT-5.5 returns empty on gateway. Use Gemini for both until fixed.
+DEFAULT_ADVERSARIAL = "gpt-5.6-sol"  # premium tier, different lab from the Claude drafter
 
 PROMPTS_DIR = Path(__file__).parent / "review-prompts"
 
 
 def get_api_key():
+    """ANTHROPIC_AUTH_TOKEN env var, then ~/.claude/settings.json env, then the DevBar CLI."""
+    key = os.environ.get("ANTHROPIC_AUTH_TOKEN", "")
+    if key:
+        return key
     settings_path = Path.home() / ".claude" / "settings.json"
-    if not settings_path.exists():
-        print("ERROR: ~/.claude/settings.json not found", file=sys.stderr)
-        sys.exit(1)
-    with open(settings_path) as f:
-        settings = json.load(f)
-    key = settings.get("env", {}).get("ANTHROPIC_AUTH_TOKEN")
-    if not key:
-        print("ERROR: ANTHROPIC_AUTH_TOKEN not found in settings.json env", file=sys.stderr)
-        sys.exit(1)
-    return key
+    if settings_path.exists():
+        try:
+            key = json.loads(settings_path.read_text()).get("env", {}).get("ANTHROPIC_AUTH_TOKEN", "")
+        except Exception:
+            key = ""
+        if key:
+            return key
+    devbar = shutil.which("devbar") or "/Applications/devbar.app/Contents/MacOS/devbar"
+    if os.path.exists(devbar):
+        try:
+            out = subprocess.run([devbar, "auth", "claude"], capture_output=True, text=True, timeout=20)
+            if out.returncode == 0 and out.stdout.strip():
+                return out.stdout.strip()
+        except Exception:
+            pass
+    print("ERROR: No LLMGW token found. Set ANTHROPIC_AUTH_TOKEN, or sign in to DevBar (devbar auth claude).", file=sys.stderr)
+    sys.exit(1)
 
 
 def load_prompt(mode):
@@ -62,7 +79,8 @@ def call_llmgw(model_id, system_prompt, user_content, api_key):
         ],
         "max_tokens": 4096,
     }
-    if not model_id.startswith("gpt-5") and not model_id.startswith("claude-opus-4-7"):
+    # Reasoning models (GPT-5.x, Grok) reject or ignore a custom temperature.
+    if not model_id.startswith(("gpt-5", "grok", "claude-opus-4-7")):
         payload["temperature"] = 0.3
 
     data = json.dumps(payload).encode("utf-8")
@@ -73,7 +91,12 @@ def call_llmgw(model_id, system_prompt, user_content, api_key):
     try:
         resp = urllib.request.urlopen(req, timeout=120)
         result = json.loads(resp.read())
-        return result["choices"][0]["message"]["content"]
+        content = result["choices"][0]["message"].get("content") or ""
+        if not content.strip():
+            print(f"ERROR: {model_id} returned an empty answer (thinking models can spend the whole budget). "
+                  "Retry, or pick another reviewer with --model.", file=sys.stderr)
+            sys.exit(1)
+        return content
     except urllib.error.HTTPError as e:
         body = e.read().decode() if e.fp else ""
         if e.code == 401:

@@ -3,12 +3,13 @@
   // This file goes at ~/.claude/.mcp.json
   // Or add servers via CLI: claude mcp add --transport http <name> <url>
   "mcpServers": {
-    // Salesforce SE Grounding Service — verified product knowledge, competitive intel, field insights
-    // Requires ZScaler VPN active
-    // Provides: grounding_search, grounding_search_narrowed, grounding_bm25, kg_lookup, kg_traverse, kg_entity_detail, kg_stats
+    // Salesforce SE Grounding Service (internal Salesforce only, NOT a kit dependency) — verified product
+    // knowledge, competitive intel, field insights. Requires ZScaler VPN + a bearer token.
+    // The endpoint is internal and changes; ask in #solutions-ai-tooling for the current URL and token.
+    // Provides: grounding_search, grounding_search_narrowed, kg_lookup, kg_traverse
     "salesforce-grounding": {
       "type": "http",
-      "url": "https://grounding.35-186-235-101.sslip.io/mcp"
+      "url": "INTERNAL-SE-GROUNDING-ENDPOINT-ask-solutions-ai-tooling/mcp"
     },
 
     // Salesforce Docs MCP — official Trailhead, developer guides, release notes, help articles

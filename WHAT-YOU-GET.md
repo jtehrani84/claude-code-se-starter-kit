@@ -4,7 +4,7 @@ Everything in this kit, what it does, why it's here, and how it helps you.
 
 ---
 
-## Rules (8 files) — Standards enforced every session
+## Rules (13 files) — Standards enforced every session
 
 Rules load automatically on every Claude Code session. You never need to remind Claude of these — they fire silently in the background.
 
@@ -18,25 +18,33 @@ Rules load automatically on every Claude Code session. You never need to remind 
 | `salesforce-platform.md` | Bulk-safe Apex, thin triggers, one trigger per object, LWC best practices, named credentials | Production-quality Salesforce code that passes code review |
 | `testing-quality.md` | Realistic test data, meaningful assertions (not just coverage), quality gate mindset | Tests that actually catch bugs, not just hit coverage numbers |
 | `slds2-lwc-ui.md` | SLDS 2 styling hooks, token migration, no hardcoded CSS values | Modern, compliant Lightning Web Components |
+| `proof-before-claim.md` | "Done" needs a signal from the running system, not a commit or a clean compile | Stops confident "it's shipped" when nothing is behind it |
+| `findings-are-perishable.md` | Re-check an old "X is broken" finding against the current artifact before acting on it | Stops you fixing things that were already fixed |
+| `claims-faithful-to-source.md` | Re-read each claim against its source before an external doc ships; tag documented / inferred | Stops polished docs that quietly overstate the source |
+| `refutation-needs-the-right-oracle.md` | Before calling something "fabricated," check the source where it would live if true | Stops confident wrong "that's made up" verdicts |
+| `structural-voice.md` | Structure-level anti-AI rules: section symmetry, cadence, calibrated hedging | Content reads like a person wrote it, not just clean of banned words |
 
 ---
 
-## Hooks (6 scripts) — Automated enforcement that can't be forgotten
+## Hooks (6 wired by setup + 1 opt-in) — Automated enforcement that can't be forgotten
 
 Hooks run mechanically — before or after Claude takes an action. Unlike rules (which Claude reads and can forget in long conversations), hooks execute as code. They intercept mistakes at the moment of action.
 
 | File | When It Fires | What It Does | Why It's Here |
 |------|--------------|-------------|---------------|
 | `session-init.py` | Session start | Routes relevant wiki pages, surfaces recent work, shows nudges | Every session starts with context — no "where was I?" |
-| `guardrail.py` | Before Edit/Write | Blocks unsafe architecture patterns before code is written | Prevents infrastructure violations at point of action |
+| `guardrail.py` | Before Bash | Blocks dangerous commands: force-push, `--set-env-vars`, `rm -rf`, secrets | Prevents destructive mistakes at the point of action |
 | `product-verification.py` | Before Edit/Write | Catches hallucinated Salesforce product names, suggests corrections | No more "Einstein Copilot" or "Agentforce Script" in customer content |
-| `output-quality-gate.py` | After Write | Scans .md/.html files for 50+ banned AI-slop words, reports exact line numbers | Content quality is enforced mechanically, not by memory |
-| `graph-auto-index.py` | After Write/Edit | Indexes entities into SQLite knowledge graph, computes relationship edges | Your knowledge graph grows automatically from your work |
-| `soql-schema-check.py` | Before SOQL execution | Validates field names against org schema before running queries | Catches bad SOQL before it fails in the org |
+| `soql-schema-check.py` | Before SOQL execution | Validates sObject and field names against the org's describe before running queries | Catches bad SOQL before it fails in the org |
+| `output-quality-gate.py` | After Write | Scans .md/.html files for 50+ banned AI-slop words, reports exact line numbers | Lightweight, node-free fallback for content quality |
+| `voice-tell-gate.py` | After Write | Runs the full voice engine (score + your overlay + cadence) on written .md/.html | Catches the rhythm tells a word list can't, and says so when it isn't calibrated to you yet |
+| `gcp-tvm-guardrail.py` | Before Bash, **opt-in** | GCP security-compliance checks before deploys | Only useful if you deploy to GCP, so setup leaves it off |
+
+`graph-auto-index.py` (the knowledge-graph indexer below) ships in `hooks/scripts-optional/` and is also opt-in.
 
 ---
 
-## Skills (22 commands) — Workflows compressed into single commands
+## Skills (25 commands) — Workflows compressed into single commands
 
 Each skill replaces 15-60 minutes of manual work. Say the command, get the output.
 
@@ -52,12 +60,14 @@ Each skill replaces 15-60 minutes of manual work. Say the command, get the outpu
 | `/engagement-playbook` | Per-persona strategic playbook with stakeholder map and objection matrix | 60 min → 5 min |
 | `/solution-design` | Solution architecture for customer deals with branded deliverables | 2 hrs → 15 min |
 
-### Quality Assurance (3)
+### Quality Assurance (5)
 
 | Skill | What It Does | Time Saved |
 |-------|-------------|-----------|
 | `/validate` | Cross-model quality gate: 5 dimensions, SHIP/FIX/REWRITE verdict | Manual review → automated |
+| `/review` | Sends a draft to a model from a different lab (OpenAI, Google, or xAI) for an adversarial read | A second opinion that doesn't share Claude's blind spots |
 | `/voice-check` | Anti-slop scanner: full 50+ word banned list, replacements, pass/fail | Catches what you'd miss |
+| `/voice-judge` | Gestalt read of a draft the way an expert reader would; can veto a clean score | Catches the tells regex can't |
 | `/content-review` | 6-dimension universal reviewer with scoring rubric (accuracy, voice, specificity, customer-centricity, actionability, credibility) | Peer review → instant |
 
 ### Intelligence & Growth (5)
@@ -86,11 +96,30 @@ Each skill replaces 15-60 minutes of manual work. Say the command, get the outpu
 | `/skillify` | Meta-skill: do work → extract pattern → new permanent command. Skills build skills. | Manual skill authoring → automatic |
 | `/context-load` | Cross-project context restore: load state from another project into current session | Context switching → instant |
 
-### Code & Architecture (1)
+### Code & Architecture (2)
 
 | Skill | What It Does | Time Saved |
 |-------|-------------|-----------|
 | `/pr-review` | PR review against SF architecture and security standards | Manual review checklist → automated |
+| `/gas-deploy` | Apps Script push + deploy + verify, so a `clasp push` never silently skips the web app | Prevents the push-only gotcha |
+
+---
+
+## Build on Agentforce (BUILD-SPEC.md + reference-agent/)
+
+| Component | What It Does | How It Helps |
+|-----------|-------------|-------------|
+| `BUILD-SPEC.md` | Step-by-step build of a governed employee agent on GA primitives, each step with its doc source and a proof command | You can reproduce the Context Engineering series' Part 10 agent instead of just reading about it |
+| `reference-agent/` | The working source: Agent Script agent, two Apex actions (`with sharing`, user mode, bulk-safe) with 9 tests, a permission set, seed data with a planted injection, and a held-out eval | Start from code that passed end to end on 2026-09-29, not from a blank org |
+
+## Voice Engine and Review Scripts (tools/, harness-evolution/, scripts/)
+
+| Component | What It Does | How It Helps |
+|-----------|-------------|-------------|
+| `tools/aiscore.mjs` + vendored detector | 0–100 AI score plus your personal overlay and cadence checks | The engine `voice-tell-gate.py` and `/voice-check` run on |
+| `tools/voice-setup.mjs` | The calibration fuse: labels every result "generic-only" until you've calibrated it to you | A clean score never gets mistaken for "sounds like me" |
+| `harness-evolution/` | Held-out eval harness + your voice corpus | Prove a guard change is a real improvement |
+| `scripts/llmgw-call.py`, `scripts/llmgw-review.py` | Call any model on the Salesforce gateway; run the cross-vendor review behind `/review` | Works with DevBar sign-in, no token copying |
 
 ---
 
@@ -100,7 +129,7 @@ A local graph database that grows from your work. No external infrastructure —
 
 | Component | What It Does | How It Helps |
 |-----------|-------------|-------------|
-| `graph-auto-index.py` hook | Every Write/Edit indexes entities and computes relationships | Graph builds itself — zero maintenance |
+| `graph-auto-index.py` hook (opt-in) | Every Write/Edit indexes entities and computes relationships | Graph builds itself once you turn it on: copy `hooks/scripts-optional/graph-auto-index.py` to `~/.claude/hooks/scripts/` and register it as a PostToolUse hook on `Write\|Edit` |
 | `graph-query` skill | Query relationships: "what relates to X?", "what mentions Y?" | Discover connections you didn't know existed |
 | `wiki/entities/` | Company, product, concept pages indexed by the graph | Structured knowledge the graph can traverse |
 | `wiki/people/` | Person pages with org trees and timelines | Relationship intelligence that compounds |

@@ -3,15 +3,20 @@
 LLMGW Multi-Model Caller — Routes prompts to any model on Salesforce LLMGW.
 
 Usage:
-  python3 llmgw-call.py --model claude-haiku-4-5-20251001 --prompt "Check this for errors"
-  python3 llmgw-call.py --model claude-sonnet-4-6 --prompt "Validate" --file output.md
-  python3 llmgw-call.py --model gpt-5.5 --prompt "Alternative framing" --file draft.md
+  python3 llmgw-call.py --model haiku --prompt "Check this for errors"
+  python3 llmgw-call.py --model sonnet --prompt "Validate" --file output.md
+  python3 llmgw-call.py --model sol --prompt "Adversarial review" --file draft.md
   python3 llmgw-call.py --list-models
 
-Available models (confirmed 2026-05-10):
-  Claude: claude-haiku-4-5-20251001, claude-sonnet-4-6, claude-opus-4-6-v1, claude-opus-4-7
-  GPT: gpt-4o, gpt-4o-mini, gpt-5, gpt-5-mini, gpt-5.5, gpt-5.2-codex, gpt-5.3-codex
-  Gemini: gemini-2.0-flash, gemini-2.5-pro, gemini-2.5-flash, gemini-3-pro-preview, gemini-3-flash-preview, gemini-3.1-pro-preview
+Available models (live-verified 2026-09-29; the gateway catalog changes, re-run --list-models against
+a live call before relying on an id):
+  Claude: claude-opus-5-5, claude-sonnet-5-5, claude-sonnet-5, claude-opus-4-8, claude-haiku-4-5-20251001, ...
+  GPT:    gpt-5.6, gpt-5.6-sol, gpt-5.6-luna, gpt-5.6-terra, gpt-5.5, gpt-5, gpt-5-mini, gpt-4o, gpt-4o-mini
+  Gemini: gemini-3.1-pro-preview, gemini-3-flash-preview, gemini-3.5-flash, gemini-3.7-flash, gemini-2.5-pro, gemini-2.5-flash
+  xAI:    grok-4.6 (a thinking model: give it max_tokens >= 400 or the answer can come back empty)
+
+Auth: uses ANTHROPIC_AUTH_TOKEN if set, else ~/.claude/settings.json env, else the DevBar CLI
+(`devbar auth claude`), which is how most DevBar-managed installs authenticate.
 
 Output: JSON with {model, content, usage} or plain text with --plain flag.
 """
@@ -19,33 +24,66 @@ Output: JSON with {model, content, usage} or plain text with --plain flag.
 import argparse
 import json
 import os
+import shutil
+import subprocess
 import sys
 import urllib.request
+from pathlib import Path
 
 LLMGW_BASE = os.environ.get("ANTHROPIC_BEDROCK_BASE_URL", "").replace("/bedrock", "") or os.environ.get("LLMGW_BASE_URL", "")
-TOKEN = os.environ.get("ANTHROPIC_AUTH_TOKEN", "")
+
+
+def resolve_token() -> str:
+    """Env var, then settings.json env, then the DevBar CLI. Returns '' if none work."""
+    tok = os.environ.get("ANTHROPIC_AUTH_TOKEN", "")
+    if tok:
+        return tok
+    try:
+        settings = json.loads((Path.home() / ".claude" / "settings.json").read_text())
+        tok = settings.get("env", {}).get("ANTHROPIC_AUTH_TOKEN", "")
+        if tok:
+            return tok
+    except Exception:
+        pass
+    devbar = shutil.which("devbar") or "/Applications/devbar.app/Contents/MacOS/devbar"
+    if os.path.exists(devbar):
+        try:
+            out = subprocess.run([devbar, "auth", "claude"], capture_output=True, text=True, timeout=20)
+            return out.stdout.strip() if out.returncode == 0 else ""
+        except Exception:
+            return ""
+    return ""
+
+
+TOKEN = resolve_token()
 
 ANTHROPIC_MODELS = {
-    "claude-haiku-4-5-20251001", "claude-sonnet-4-20250514", "claude-sonnet-4-5-20250929",
-    "claude-sonnet-4-6", "claude-opus-4-5-20251101", "claude-opus-4-6-v1", "claude-opus-4-7"
+    "claude-opus-5-5", "claude-sonnet-5-5", "claude-sonnet-5", "claude-opus-4-8", "claude-opus-4-7",
+    "claude-opus-4-6-v1", "claude-opus-4-5-20251101", "claude-sonnet-4-6", "claude-sonnet-4-5-20250929",
+    "claude-sonnet-4-20250514", "claude-haiku-4-5-20251001",
 }
 
 ALL_MODELS = ANTHROPIC_MODELS | {
-    "gemini-2.0-flash", "gemini-2.5-pro", "gemini-2.5-flash",
-    "gemini-3-pro-preview", "gemini-3-flash-preview", "gemini-3.1-pro-preview",
-    "gpt-4o", "gpt-4o-mini", "gpt-5", "gpt-5-mini", "gpt-5.5", "gpt-5.2-codex", "gpt-5.3-codex"
+    "gpt-5.6", "gpt-5.6-sol", "gpt-5.6-luna", "gpt-5.6-terra", "gpt-5.5", "gpt-5", "gpt-5-mini", "gpt-4o", "gpt-4o-mini",
+    "gemini-3.1-pro-preview", "gemini-3-flash-preview", "gemini-3.5-flash", "gemini-3.7-flash",
+    "gemini-2.5-pro", "gemini-2.5-flash",
+    "grok-4.6",
 }
 
 # Model aliases for convenience
 ALIASES = {
     "haiku": "claude-haiku-4-5-20251001",
-    "sonnet": "claude-sonnet-4-6",
-    "opus": "claude-opus-4-6-v1",
-    "opus47": "claude-opus-4-7",
+    "sonnet": "claude-sonnet-5-5",
+    "opus": "claude-opus-5-5",
+    "opus48": "claude-opus-4-8",
+    "sol": "gpt-5.6-sol",
+    "luna": "gpt-5.6-luna",
+    "terra": "gpt-5.6-terra",
     "gpt5": "gpt-5",
     "gpt55": "gpt-5.5",
-    "gemini": "gemini-2.5-pro",
-    "flash": "gemini-2.5-flash",
+    "gemini": "gemini-3.1-pro-preview",
+    "flash": "gemini-3.5-flash",
+    "grok": "grok-4.6",
 }
 
 
@@ -89,8 +127,9 @@ def call_model(model: str, prompt: str, system: str = "", max_tokens: int = 4096
 
     # Normalize response across API formats
     if "content" in data:
-        # Anthropic Messages API format
-        text = data["content"][0]["text"] if data["content"] else ""
+        # Anthropic Messages API format. Thinking models (e.g. Grok) put a thinking or
+        # redacted_thinking block first, so join every text block rather than reading [0].
+        text = "".join(b.get("text", "") for b in (data["content"] or []) if b.get("type") == "text")
         usage = data.get("usage", {})
     elif "choices" in data:
         # OpenAI format
@@ -132,13 +171,17 @@ def main():
         for m in sorted(m for m in ALL_MODELS if m.startswith("gemini")):
             alias = next((k for k, v in ALIASES.items() if v == m), "")
             print(f"  {m}" + (f" ({alias})" if alias else ""))
+        print("\nxAI:")
+        for m in sorted(m for m in ALL_MODELS if m.startswith("grok")):
+            alias = next((k for k, v in ALIASES.items() if v == m), "")
+            print(f"  {m}" + (f" ({alias})" if alias else ""))
         return
 
     if not args.prompt:
         parser.error("--prompt is required (or use --list-models)")
 
     if not TOKEN:
-        print(json.dumps({"error": "ANTHROPIC_AUTH_TOKEN not set"}))
+        print(json.dumps({"error": "No LLMGW token found. Set ANTHROPIC_AUTH_TOKEN, or sign in to DevBar (devbar auth claude)."}))
         sys.exit(1)
 
     prompt = args.prompt

@@ -4,9 +4,9 @@
 #
 # What it does:
 #   1. Creates ~/.claude/ directory structure (won't overwrite existing)
-#   2. Copies rules, hooks, and skill templates
-#   3. Asks for your info to personalize CLAUDE.md
-#   4. Wires hooks into settings
+#   2. Copies rules, hooks, skill templates, and the voice engine + eval harness
+#   3. Wires hooks into settings (merge-safe and re-runnable, so upgrades pick up new hooks)
+#   4. Points you at the personalization prompt that builds your CLAUDE.md
 #
 # Usage: ./setup.sh [--dry-run] [--check] [--uninstall]
 
@@ -69,7 +69,14 @@ if [[ "${1:-}" == "--check" ]]; then
         fi
     done
 
-    # 4. python3
+    # 4. Voice engine (the voice-tell-gate hook calls it; without it the hook stays silent)
+    if [[ -f "$CLAUDE_DIR/tools/aiscore.mjs" ]]; then
+        echo -e "  ${GREEN}✓${NC} Voice engine installed (~/.claude/tools/aiscore.mjs)"
+    else
+        echo -e "  ${YELLOW}⚠${NC} Voice engine missing — re-run ./setup.sh so voice-tell-gate has something to call"
+    fi
+
+    # 5. python3
     if command -v python3 &>/dev/null; then
         echo -e "  ${GREEN}✓${NC} python3 available ($(python3 --version 2>&1))"
     else
@@ -139,6 +146,19 @@ if [[ "${1:-}" == "--uninstall" ]]; then
         [[ -f "$target" ]] && FILES_TO_REMOVE+=("$target")
     done
 
+    # Voice engine + eval harness: only remove a file that is byte-identical to the kit's copy,
+    # so a tool you wrote yourself that happens to share a name is never deleted.
+    for tree in tools harness-evolution scripts/llmgw-call.py scripts/llmgw-review.py scripts/review-prompts; do
+        [[ -e "$SCRIPT_DIR/$tree" ]] || continue
+        while IFS= read -r -d '' src; do
+            rel="${src#"$SCRIPT_DIR"/}"
+            target="$CLAUDE_DIR/$rel"
+            if [[ -f "$target" ]] && cmp -s "$src" "$target"; then
+                FILES_TO_REMOVE+=("$target")
+            fi
+        done < <(find "$SCRIPT_DIR/$tree" -type f -print0)
+    done
+
     if [[ ${#FILES_TO_REMOVE[@]} -eq 0 ]]; then
         echo "  No starter kit files found in ~/.claude/. Nothing to remove."
         exit 0
@@ -173,7 +193,7 @@ echo -e "${CYAN}╚════════════════════�
 echo ""
 
 # --- Step 0: CLI environment check ---
-echo -e "${GREEN}[0/5]${NC} Checking CLI environment..."
+echo -e "${GREEN}[0/7]${NC} Checking CLI environment..."
 echo ""
 
 if ! bash "$SCRIPT_DIR/scripts/check-cli.sh"; then
@@ -186,12 +206,15 @@ fi
 echo ""
 
 # --- Step 1: Create directory structure ---
-echo -e "${GREEN}[1/5]${NC} Creating directory structure..."
+echo -e "${GREEN}[1/7]${NC} Creating directory structure..."
 
 DIRS=(
     "$CLAUDE_DIR/rules"
     "$CLAUDE_DIR/hooks/scripts"
     "$CLAUDE_DIR/commands"
+    "$CLAUDE_DIR/tools"
+    "$CLAUDE_DIR/harness-evolution"
+    "$CLAUDE_DIR/scripts"
 )
 
 for dir in "${DIRS[@]}"; do
@@ -203,7 +226,7 @@ done
 echo ""
 
 # --- Step 2: Copy rules ---
-echo -e "${GREEN}[2/5]${NC} Installing rules..."
+echo -e "${GREEN}[2/7]${NC} Installing rules..."
 
 for rule_file in "$SCRIPT_DIR/rules/"*.md; do
     filename=$(basename "$rule_file")
@@ -220,7 +243,7 @@ done
 echo ""
 
 # --- Step 3: Copy hooks ---
-echo -e "${GREEN}[3/5]${NC} Installing hooks..."
+echo -e "${GREEN}[3/7]${NC} Installing hooks..."
 
 for hook_file in "$SCRIPT_DIR/hooks/scripts/"*.py; do
     filename=$(basename "$hook_file")
@@ -238,7 +261,7 @@ done
 echo ""
 
 # --- Step 4: Copy skills ---
-echo -e "${GREEN}[4/5]${NC} Installing SE skills..."
+echo -e "${GREEN}[4/7]${NC} Installing SE skills..."
 
 for skill_file in "$SCRIPT_DIR/skills/"*.md; do
     filename=$(basename "$skill_file")
@@ -254,16 +277,38 @@ for skill_file in "$SCRIPT_DIR/skills/"*.md; do
 done
 echo ""
 
-# --- Step 5: Wire hooks into settings.json (merge-safe) ---
-echo -e "${GREEN}[5/6]${NC} Wiring hooks into settings.json..."
+# --- Step 5: Voice engine + eval harness (the voice-tell-gate hook calls ~/.claude/tools/aiscore.mjs) ---
+echo -e "${GREEN}[5/7]${NC} Installing the voice engine, eval harness, and review scripts..."
+
+# tools/ = voice engine; harness-evolution/ = eval harness; the llmgw scripts + prompts back /review.
+for tree in tools harness-evolution scripts/llmgw-call.py scripts/llmgw-review.py scripts/review-prompts; do
+    [[ -e "$SCRIPT_DIR/$tree" ]] || continue
+    installed=0; skipped=0
+    while IFS= read -r -d '' src; do
+        rel="${src#"$SCRIPT_DIR"/}"
+        dest="$CLAUDE_DIR/$rel"
+        if [[ -f "$dest" ]]; then
+            skipped=$((skipped + 1))
+        else
+            if [[ "$DRY_RUN" == false ]]; then
+                mkdir -p "$(dirname "$dest")"
+                cp "$src" "$dest"
+            fi
+            installed=$((installed + 1))
+        fi
+    done < <(find "$SCRIPT_DIR/$tree" -type f -print0)
+    echo "  ✓ $tree: $installed installed, $skipped already present (kept yours)"
+done
+echo ""
+
+# --- Step 6: Wire hooks into settings.json (merge-safe, idempotent, safe to re-run on upgrade) ---
+echo -e "${GREEN}[6/7]${NC} Wiring hooks into settings.json..."
 
 SETTINGS_FILE="$CLAUDE_DIR/settings.json"
 if [[ -f "$SETTINGS_FILE" ]]; then
-    # Check if hooks are already wired
-    if grep -q "session-init.py" "$SETTINGS_FILE" 2>/dev/null; then
-        echo -e "  ${YELLOW}⚠ Hooks already wired in settings.json — skipping${NC}"
-    else
-        if [[ "$DRY_RUN" == false ]]; then
+    # add_hook() below skips any hook already present, so re-running setup after a kit update
+    # wires the NEW hooks without duplicating the old ones.
+    if [[ "$DRY_RUN" == false ]]; then
             # Use python3 to safely merge hooks into existing settings.json
             # Format: {"hooks": {"EventName": [{"matcher": "ToolName", "hooks": [{"type": "command", "command": "..."}]}]}}
             python3 -c "
@@ -284,6 +329,7 @@ if 'hooks' not in settings:
     settings['hooks'] = {}
 
 hooks = settings['hooks']
+added = []
 
 def add_hook(event, matcher, command):
     if event not in hooks:
@@ -295,34 +341,39 @@ def add_hook(event, matcher, command):
     if matcher:
         entry['matcher'] = matcher
     hooks[event].append(entry)
+    added.append(script_name)
 
 add_hook('SessionStart', '', 'python3 ~/.claude/hooks/scripts/session-init.py')
 add_hook('PreToolUse', 'Bash', 'python3 ~/.claude/hooks/scripts/guardrail.py')
 add_hook('PreToolUse', 'Edit|Write', 'python3 ~/.claude/hooks/scripts/product-verification.py')
 add_hook('PreToolUse', 'Bash', 'python3 ~/.claude/hooks/scripts/soql-schema-check.py')
 add_hook('PostToolUse', 'Write', 'python3 ~/.claude/hooks/scripts/output-quality-gate.py')
+add_hook('PostToolUse', 'Write', 'python3 ~/.claude/hooks/scripts/voice-tell-gate.py')
+
+if not added:
+    print('  All kit hooks were already wired — nothing to add.')
+    sys.exit(0)
 
 with open(settings_path, 'w') as f:
     json.dump(settings, f, indent=2)
 
-print('  Hooks merged into settings.json successfully.')
+print('  Wired: ' + ', '.join(added))
 " 2>&1
             if [[ $? -ne 0 ]]; then
                 echo -e "  ${YELLOW}⚠ Could not auto-wire hooks. Wire them manually from settings.json.REFERENCE-ONLY${NC}"
             else
                 echo "  ✓ Hooks wired into settings.json (auth key preserved)"
             fi
-        else
-            echo "  [dry-run] Would merge hooks into settings.json"
-        fi
+    else
+        echo "  [dry-run] Would merge hooks into settings.json"
     fi
 else
     echo -e "  ${YELLOW}⚠ No settings.json found — install LLMGW first, then re-run setup${NC}"
 fi
 echo ""
 
-# --- Step 6: Personalization ---
-echo -e "${GREEN}[6/6]${NC} Personalization..."
+# --- Step 7: Personalization ---
+echo -e "${GREEN}[7/7]${NC} Personalization..."
 echo ""
 echo "  To complete setup, open Claude Code and paste:"
 echo ""
@@ -337,6 +388,7 @@ echo -e "${GREEN}  Setup complete!${NC}"
 echo ""
 echo "  Installed:"
 echo "    • Rules, hook scripts, and skills copied to ~/.claude/"
+echo "    • Voice engine + eval harness copied to ~/.claude/tools and ~/.claude/harness-evolution"
 echo "    • Hooks wired into settings.json (auth key preserved)"
 echo ""
 echo "  Next steps:"
@@ -344,6 +396,8 @@ echo "    1. Open Claude Code in your project directory"
 echo "    2. Paste: Read ~/claude-code-se-starter-kit/QUICKSTART-PROMPT.md and follow the instructions."
 echo "    3. Answer Claude's 5 questions"
 echo "    4. Start using /account-prep before your next meeting"
+echo "    5. Calibrate the voice guard to YOU: node ~/.claude/tools/voice-setup.mjs (see VOICE-ONBOARDING.md)"
+echo "    6. Building an Agentforce agent? Start at BUILD-SPEC.md + reference-agent/"
 echo ""
 echo "  Questions? → #solutions-ai-tooling or jtehrani@salesforce.com"
 echo -e "${GREEN}════════════════════════════════════════════════${NC}"

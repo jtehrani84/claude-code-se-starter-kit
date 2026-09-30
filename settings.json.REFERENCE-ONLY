@@ -12,12 +12,20 @@
   // This is a REFERENCE file showing all available configuration options.
   // Your actual settings.json is managed by the LLMGW installer.
 
-  // Model selection — use your organization's preferred model
-  "model": "claude-sonnet-4-20250514",
+  // Model selection. As of 2026-09-29 the Salesforce gateway serves the 5.5 family, and Opus 5.5 is the
+  // recommended default. "[1m]" is Claude Code's 1M-context option, not a separate gateway model.
+  // ⚠ In the VS Code extension, the /model picker can't confirm a "[1m]" id (it checks the gateway
+  //   catalog, which lists "claude-opus-5-5" without the suffix). Set it as an env var instead, in VS Code
+  //   settings "claudeCode.environmentVariables": [{"name":"ANTHROPIC_MODEL","value":"us.anthropic.claude-opus-5-5[1m]"}]
+  "model": "us.anthropic.claude-opus-5-5[1m]",
 
   // Environment variables available to hooks and scripts
   "env": {
-    // Your Anthropic auth token (if not using org SSO)
+    // What the "opus" and "sonnet" aliases (and subagents that ask for them) resolve to.
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "us.anthropic.claude-opus-5-5[1m]",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "us.anthropic.claude-sonnet-5-5",
+
+    // Your Anthropic auth token (if not using org SSO or DevBar)
     // "ANTHROPIC_AUTH_TOKEN": "sk-ant-...",
 
     // Salesforce CLI default org alias
@@ -106,6 +114,7 @@
         ]
       },
       {
+        // Opt-in: only useful if you deploy to GCP. setup.sh does NOT wire this one.
         "matcher": "Bash",
         "hooks": [
           { "type": "command", "command": "python3 ~/.claude/hooks/scripts/gcp-tvm-guardrail.py", "timeout": 3000 }
@@ -119,6 +128,13 @@
         "matcher": "Write",
         "hooks": [
           { "type": "command", "command": "python3 ~/.claude/hooks/scripts/output-quality-gate.py" }
+        ]
+      },
+      {
+        // Full voice engine (~/.claude/tools/aiscore.mjs). Silent if node or the engine is missing.
+        "matcher": "Write",
+        "hooks": [
+          { "type": "command", "command": "python3 ~/.claude/hooks/scripts/voice-tell-gate.py" }
         ]
       }
     ],
